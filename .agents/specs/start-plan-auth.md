@@ -64,3 +64,15 @@ enum: `["api-key", "zhipu-coding-plan-api-key"]`
 ## auth_failed 结论
 
 用户遇到的 provider_code=3007 auth_failed 根因是 **zcodejwttoken 过期**,不是缺 x-coding-plan-api-key,也不是开源实现缺链路。凭证基础设施(loadCodingPlanApiKey/resolveProviderApiKey/coding-plan-api-key.ts)开源已齐全。需重新登录刷新 JWT。
+
+## Start Plan entitlement/badge 端点(curl 实测确认)
+
+- **quota 端点**: `GET https://api.z.ai/api/monitor/usage/quota/limit`(可带 `?model=GLM-5.3`)
+- 请求头: `Authorization: Bearer <zcodejwttoken>` + `X-Coding-Plan-Api-Key: <codingPlanApiKey>`
+- 响应: `{code, msg, success, data}`;token 过期时 `code:401, msg:"token expired or incorrect"`(网关 HTTP 200,业务 401)
+- 代码链路: `useUsageEntitlement` → `IUsageStatsService.getEntitlementSnapshot` → `BigModelUsageQuotaProvider.getCodingPlanUsageSnapshot` → `buildZaiQuotaUrl` → 上述端点
+- 返回的 `remaining.count` 即 badge 显示的剩余 token 数
+
+## badge 渲染链路(已接线)
+
+`useUsageEntitlementWithService` → service.getEntitlementSnapshot → snapshot.remaining.count → `WorkspaceSidebarFooterPlanBadge`(已加 compact remaining 显示)→ 左下角渲染
