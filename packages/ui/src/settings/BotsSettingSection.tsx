@@ -126,15 +126,15 @@ export function BotsSettingSection({ service, onConnect }: BotsSettingSectionPro
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setEditing(bot)}>
-              {intl.formatMessage({ id: "bots.token.label" })}
+              {intl.formatMessage({ id: "bots.saveSecret" })}
             </Button>
             {onConnect ? (
               <Button variant="outline" size="sm" onClick={() => onConnect(bot)}>
-                {intl.formatMessage({ id: "bots.connectToBot" })}
+                {intl.formatMessage({ id: "bots.bind" })}
               </Button>
             ) : null}
             <Button variant="outline" size="sm" onClick={() => void handleRemove(bot.id)}>
-              {intl.formatMessage({ id: "bots.confirmDeleteBot" })}
+              {intl.formatMessage({ id: "bots.delete" })}
             </Button>
           </div>
         </div>
@@ -181,7 +181,7 @@ function BotEditDialog({
           {draft.provider === "webhook" ? (
             <div>
               <label className="mb-1 block text-ui-base text-foreground-subtle">
-                {intl.formatMessage({ id: "bots.webhook.webhookUrl" })}
+                {intl.formatMessage({ id: "bots.webhookUrl" })}
               </label>
               <Input
                 value={draft.webhookUrl ?? ""}
@@ -192,22 +192,22 @@ function BotEditDialog({
           ) : (
             <div>
               <label className="mb-1 block text-ui-base text-foreground-subtle">
-                {intl.formatMessage({ id: "bots.token.label" })}
+                {intl.formatMessage({ id: "bots.webhookSecret" })}
               </label>
               <Input
                 value={draft.credentialRef ?? ""}
                 onChange={(e) => setDraft({ ...draft, credentialRef: e.target.value })}
-                placeholder={intl.formatMessage({ id: "bots.token.placeholder" })}
+                placeholder={intl.formatMessage({ id: "bots.webhookSecretPlaceholder" })}
               />
             </div>
           )}
         </div>
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="outline" onClick={onCancel}>
-            {intl.formatMessage({ id: "bots.cancelSave" })}
+            {intl.formatMessage({ id: "common.cancel" })}
           </Button>
           <Button onClick={() => onSave(draft)}>
-            {intl.formatMessage({ id: "bots.saveChanges" })}
+            {intl.formatMessage({ id: "bots.saveSecret" })}
           </Button>
         </div>
       </div>

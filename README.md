@@ -10,7 +10,7 @@
 
 ## 这是什么
 
-ZAI 官方把 ZCode 的核心以 MIT 协议开源(`zai-org/ZCode`),但**桌面端的若干功能只在闭源 AppImage 里提供**,开源仓库里没有:
+ZAI 官方把 ZCode 以 **Apache-2.0** 协议开源(`zai-org/ZCode`),但**桌面端的若干功能只在闭源 AppImage 里提供**,开源仓库里没有:
 
 - 额度优惠(150% 配额活动)
 - 手机远控(桌面 ↔ 手机扫码互控)
@@ -25,7 +25,7 @@ ZAI 官方把 ZCode 的核心以 MIT 协议开源(`zai-org/ZCode`),但**桌面�
 
 ## 相比原开源版的修改
 
-> 详细实现见 [`ZCode额度优惠实现方案调研.md`](./ZCode额度优惠实现方案调研.md) 与 [`.agents/specs/`](./.agents/specs/) 下的契约文档。
+> 详细实现见 [billing-discount-research.md](.agents/specs/billing-discount-research.md) 与 [`.agents/specs/`](./.agents/specs/) 下的契约文档。
 
 ### ✅ 已补齐的闭源功能
 
@@ -101,13 +101,15 @@ pnpm dev:desktop
 - **遥测 / 官方平台深度集成**:按你的要求未对齐闭源的 ARMS 数仓上报(也不建议对齐)。
 - **部分功能仅服务层**:rewards、off-peak、campaign 完整交互流等,UI 可后续补。
 
-> 详见 [`ZCode额度优惠实现方案调研.md`](./ZCode额度优惠实现方案调研.md) 的实现汇总与 `.agents/specs/` 契约。
+> 详见 [billing-discount-research.md](.agents/specs/billing-discount-research.md) 的实现汇总与 `.agents/specs/` 契约。
 
 ---
 
 ## 免责声明
 
-本项目仅供学习研究。ZCode 及相关商标归其所有者。逆向所得契约用于实现兼容,不包含闭源二进制本身。
+本项目基于 ZCode(**Apache-2.0**)二次开发,沿用其开源协议;新增改动同样以 Apache-2.0 发布(见 [`LICENSE`](./LICENSE))。ZCode 及相关商标归其所有者。逆向所得契约用于实现兼容,不包含闭源二进制本身。
+
+> 注:ZCode 是 **Apache-2.0** 而非 MIT 开源。
 
 ---
 
@@ -119,7 +121,7 @@ pnpm dev:desktop
 
 ## Why
 
-ZAI open-sourced ZCode's core under MIT, but several desktop features exist **only in the closed AppImage**: the 150% quota discount, phone↔desktop remote control, bot notifications (Telegram/Feishu/WeChat/Webhook), marketing dialogs, claimable plans, and server remote connections. **LibreZCode brings those back** so you can run a fully-featured, self-hostable, auditable ZCode from source.
+ZAI open-sourced ZCode under **Apache-2.0**, but several desktop features exist **only in the closed AppImage**: the 150% quota discount, phone↔desktop remote control, bot notifications (Telegram/Feishu/WeChat/Webhook), marketing dialogs, claimable plans, and server remote connections. **LibreZCode brings those back** so you can run a fully-featured, self-hostable, auditable ZCode from source.
 
 ## What we changed vs. the open-source version
 
@@ -141,8 +143,8 @@ Local dev: `pnpm install && pnpm typecheck && pnpm dev:desktop`.
 - Some i18n copy is reverse-filled, not yet verbatim-identical.
 - Telemetry / official-platform deep integration intentionally not replicated.
 
-See [`ZCode额度优惠实现方案调研.md`](./ZCode额度优惠实现方案调研.md) and `.agents/specs/` for implementation details and contracts.
+See [billing-discount-research.md](.agents/specs/billing-discount-research.md) and `.agents/specs/` for implementation details and contracts.
 
 ## Disclaimer
 
-For educational/research purposes only. ZCode and related trademarks belong to their owners. Reverse-engineered contracts are used for compatibility; no closed-source binaries are included.
+This project is a derivative work of ZCode (**Apache-2.0**) and inherits that license; new changes are likewise released under Apache-2.0 (see [`LICENSE`](./LICENSE)). ZCode and related trademarks belong to their owners. Reverse-engineered contracts are used for compatibility; no closed-source binaries are included.
