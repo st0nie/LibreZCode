@@ -18,6 +18,7 @@ import type {
   CodingPlanPaypalSupportResponse,
   CodingPlanProductInfo,
   CodingPlanProductInfoRequest,
+  CodingPlanBillingDiscountConfig,
   CodingPlanStaticTeamProduct,
   CodingPlanStaticProductsConfig,
   CodingPlanStaticTeamProductsConfig,
@@ -104,6 +105,9 @@ interface ZCodeClientConfigEnvelope {
       forceUpdate?: ForceUpdateConfig | null;
       codingPlanStaticProducts?: CodingPlanStaticProductsConfig;
       codingPlanStaticTeamProducts?: CodingPlanStaticTeamProductsConfig;
+      // 额度优惠活动文案：原始透传（与 3.14.1 桌面端一致），
+      // 字段级校验在渲染侧 resolveCodingPlanBillingDiscountCopy 完成。
+      codingPlanBillingDiscount?: CodingPlanBillingDiscountConfig;
       startPlanPreview?: StartPlanPreviewConfig | null;
       // 闲时任务灰度（服务端）：内层字段服务端为 snake_case，与外层 camelCase 混排。
       offPeak?: {
@@ -212,6 +216,16 @@ export class BigModelCodingPlanSubscriptionProvider {
   async getStartPlanPreview(): Promise<StartPlanPreviewConfig | null> {
     const payload = await this.getClientConfigs();
     return unwrapClientConfigStartPlanPreview(payload);
+  }
+
+  /**
+   * 额度优惠活动配置：与 startPlanPreview/forceUpdate 同走 client/configs,
+   * 复用 1h 快照与并发单飞，零新增请求。读取失败直接抛给 UI 层静默隐藏
+   *（与 getStaticProducts 的失败语义一致，不能把异常吞成“无活动”）。
+   */
+  async getBillingDiscount(): Promise<CodingPlanBillingDiscountConfig | undefined> {
+    const payload = await this.getClientConfigs();
+    return unwrapClientConfigBillingDiscount(payload);
   }
 
   /**
@@ -1214,6 +1228,21 @@ function unwrapClientConfigStartPlanPreview(
     name: preview.name,
     entitlements: preview.entitlements.filter(isValidStartPlanPreviewEntitlement),
   };
+}
+
+function unwrapClientConfigBillingDiscount(
+  payload: ZCodeClientConfigEnvelope,
+): CodingPlanBillingDiscountConfig | undefined {
+  if (payload.code !== undefined && payload.code !== 0) {
+    throw new Error(payload.msg?.trim() || "ZCode client config request failed");
+  }
+  const configs = payload.data?.configs;
+  // 与 3.14.1 桌面端一致：host 只做存在性透传，不做结构校验；
+  // 字段级 trim/归一化全部在渲染侧 resolveCodingPlanBillingDiscountCopy 完成。
+  if (!configs || !("codingPlanBillingDiscount" in configs)) {
+    return undefined;
+  }
+  return configs.codingPlanBillingDiscount;
 }
 
 function unwrapClientConfigForceUpdate(

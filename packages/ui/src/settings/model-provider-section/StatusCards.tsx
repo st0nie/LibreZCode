@@ -18,6 +18,8 @@ import { LocalizedCodingPlanQuotaResetAction } from "@/components/coding-plan-qu
 import { CodingPlanQuotaResetOpportunity } from "@/components/coding-plan-quota-reset/CodingPlanQuotaResetOpportunity.js";
 import { buildCodingPlanQuotaResetDialogConfig } from "@/components/coding-plan-quota-reset/buildCodingPlanQuotaResetDialogConfig.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
+import { useCodingPlanBillingDiscount } from "@/hooks/useCodingPlanBillingDiscount.js";
+import { CodingPlanBillingDiscountBadgeWithInfo } from "@/settings/model-provider-section/CodingPlanBillingDiscountBadge.js";
 import { useCodingPlanQuotaResetUi } from "@/hooks/useCodingPlanQuotaResetUi.js";
 import {
   formatQuotaResetTime,
@@ -217,6 +219,7 @@ export function CodingPlanStatusPanel({
   onQuotaResetEntitlementRefresh?: () => void | Promise<void>;
 }) {
   const { intl } = useZCodeIntl();
+  const billingDiscount = useCodingPlanBillingDiscount();
   const [internalUpgradePlansVisible, setInternalUpgradePlansVisible] = useState(false);
   const [startPlanEntitlementRefreshing, setStartPlanEntitlementRefreshing] = useState(false);
   const upgradePlansVisible = controlledUpgradePlansVisible ?? internalUpgradePlansVisible;
@@ -373,6 +376,8 @@ export function CodingPlanStatusPanel({
           ? "settings.modelProvider.codingPlan.renew"
           : "settings.modelProvider.codingPlan.upgrade"
       }
+      billingDiscountActive={isStartPlanProvider && billingDiscount.active}
+      billingDiscountConfig={billingDiscount.config}
       onUpgradePlansVisibleChange={(visible) => {
         if (visible) {
           openUpgradePlans(
@@ -604,6 +609,14 @@ export function CodingPlanStatusPanel({
           <PlanStatusCardSurface
             key="current-plan"
             planTitle={planTitle}
+            titleAccessory={
+              !isStartPlanProvider && billingDiscount.active ? (
+                <CodingPlanBillingDiscountBadgeWithInfo
+                  config={billingDiscount.config}
+                  size="compact"
+                />
+              ) : undefined
+            }
             statusMeta={statusContent}
             trailingAction={trailingAction}
             usageContent={

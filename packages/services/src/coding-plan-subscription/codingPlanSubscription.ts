@@ -40,6 +40,7 @@ import type {
   EnterpriseCodingPlanPricingRequest,
   EnterpriseCodingPlanPricingResponse,
   StartPlanPreviewConfig,
+  CodingPlanBillingDiscountConfig,
   ZCodeModelContextBudgetStrategy,
   ForceUpdateConfig,
   DynamicWorkflowClientConfig,
@@ -60,6 +61,11 @@ export interface ICodingPlanSubscriptionService {
   getStaticProducts(): Promise<CodingPlanStaticProductsConfig>;
   getStaticTeamProducts(): Promise<CodingPlanStaticTeamProductsConfig>;
   getStartPlanPreview(): Promise<StartPlanPreviewConfig | null>;
+  /**
+   * 额度优惠活动配置（client/configs `configs.codingPlanBillingDiscount`）：
+   * 复用同一 1h 快照通道零新增请求；服务端未下发放置时返回 undefined，由 UI 静默隐藏。
+   */
+  getBillingDiscount(): Promise<CodingPlanBillingDiscountConfig | undefined>;
   /** 闲时任务灰度配置：forceRefresh 供入口打开时补拉（绕过 1h 快照缓存）。 */
   getOffPeakClientConfig(options?: { forceRefresh?: boolean }): Promise<OffPeakClientConfig>;
   /**

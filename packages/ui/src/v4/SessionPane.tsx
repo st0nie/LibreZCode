@@ -102,6 +102,7 @@ import { useDraftRuntimeRebuildGate } from "@/v4/composer/useDraftRuntimeRebuild
 import { useDraftModelReadinessGate } from "@/v4/composer/useDraftModelReadinessGate.js";
 import { useSettings } from "@/hooks/useSettingService.js";
 import { useZCodeStoreWithDefault } from "@/store/StoreProvider.js";
+import { useCodingPlanBillingDiscount } from "@/hooks/useCodingPlanBillingDiscount.js";
 import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
 import {
   DEFAULT_CONVERSATION_SHARE_ACCESS_MODE,
@@ -1380,6 +1381,9 @@ export function SessionPane({
     (state) => state.codePreviewSettings,
     DEFAULT_CODE_PREVIEW_SETTINGS,
   );
+  // 额度优惠活动:与 3.14.1 桌面端一致,横幅升级按钮旁的活动徽章/说明
+  // 由 hook 在会话宿主读取,经 props 传给纯展示的 ConversationQuotaBanner。
+  const billingDiscount = useCodingPlanBillingDiscount();
   // Tier 1 fork 跳转：点 child 会话的 forkNotice → 把当前 pane 原地切到父会话，复用 fork
   // 落地同款 onSessionCreated（primary→setActiveTaskId、分屏→bindPaneSession）。rowId 预留
   // Tier 2 精确滚动——当前 forkNotice.parentRowId 恒为 0 占位，此处忽略。
@@ -4498,6 +4502,8 @@ export function SessionPane({
         <ConversationQuotaBanner
           state={quotaBanner.state}
           onShown={quotaBanner.markShown}
+          billingDiscountActive={billingDiscount.active}
+          billingDiscountConfig={billingDiscount.config}
           upgradeActionLabelId={quotaBanner.upgradeActionLabelId}
           onUpgrade={
             quotaBanner.upgradeProviderId && codingPlanUpgradeDialog

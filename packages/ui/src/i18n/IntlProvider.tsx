@@ -134,7 +134,10 @@ interface IntlContextValue {
   setLocalePreference: (localePreference: LocalePreference) => void;
 }
 
-const IntlContext = createContext<IntlContextValue | null>(null);
+/**
+ * 导出上下文对象供测试直接注入 locale（生产路径一律走 ZCodeIntlProvider）。
+ */
+export const IntlContext = createContext<IntlContextValue | null>(null);
 
 /**
  * 国际化 Provider —— 管理当前语言和 intl 实例。

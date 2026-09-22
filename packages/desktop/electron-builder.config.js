@@ -754,13 +754,11 @@ export default {
   },
   detectUpdateChannel: false,
   publish: {
-    provider: "generic",
-    // 当前 OSS/CDN 对多 Range 请求返回 206，但 Content-Type 仍是 application/x-msdownload，
-    // electron-updater 会因缺少 multipart/byteranges 直接回退整包下载。关闭 multiple range 后仍走差分，
-    // 只是按单 Range 顺序拉取差异块，避免 Windows 用户更新时从约 15MB 退化成 300MB+ 全量包。
-    useMultipleRangeRequest: false,
-    // 新客户端运行时使用服务端 manifest provider；这里仅保留 electron-builder 必需的
-    // generic publish 占位，避免打包产物继续携带可配置的旧 stable feed。
-    url: "http://localhost:8081",
+    // 发布走 GitHub Releases（本仓库）。generic 的 /releases/latest 在只发
+    // Pre-release 时会 404；GitHub provider 走 Releases API，运行时配合
+    // allowPrerelease 拉取。文件路径、校验和与下载安装由 electron-updater 处理。
+    provider: "github",
+    owner: "st0nie",
+    repo: "zcode-libre",
   },
 };

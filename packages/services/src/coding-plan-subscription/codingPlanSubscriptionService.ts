@@ -41,6 +41,7 @@ export function createCodingPlanSubscriptionService(
     getStaticProducts: () => bigmodelProvider.getStaticProducts(),
     getStaticTeamProducts: () => bigmodelProvider.getStaticTeamProducts(),
     getStartPlanPreview: () => bigmodelProvider.getStartPlanPreview(),
+    getBillingDiscount: () => bigmodelProvider.getBillingDiscount(),
     getOffPeakClientConfig: (options) => bigmodelProvider.getOffPeakClientConfig(options),
     // 动态工作流灰度：与 client/configs 同源，
     // 因此和其它平台级配置一样固定走 bigmodel provider，与 family 无关。

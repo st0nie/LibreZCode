@@ -2775,6 +2775,7 @@ const zhCN: Record<string, string> = {
   "settings.modelProvider.codingPlan.product.included": "已有权益",
   "settings.modelProvider.codingPlan.product.firstPromo": "首购优惠",
   "settings.modelProvider.codingPlan.product.delay": "{time} 生效",
+  "settings.modelProvider.codingPlan.billingDiscountInfo.open": "查看 150% 配额活动说明",
   "settings.modelProvider.codingPlan.zai.plan.lite.name": "Lite",
   "settings.modelProvider.codingPlan.zai.plan.lite.summary": "Claude Pro 用量额度的 3 倍",
   "settings.modelProvider.codingPlan.zai.plan.pro.name": "Pro",

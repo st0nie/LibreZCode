@@ -2960,6 +2960,7 @@ const enUS: Record<string, string> = {
   "settings.modelProvider.codingPlan.product.included": "Included",
   "settings.modelProvider.codingPlan.product.firstPromo": "First-time subscription discount",
   "settings.modelProvider.codingPlan.product.delay": "Effective {time}",
+  "settings.modelProvider.codingPlan.billingDiscountInfo.open": "View 150% quota campaign details",
   "settings.modelProvider.codingPlan.zai.plan.lite.name": "Lite",
   "settings.modelProvider.codingPlan.zai.plan.lite.summary": "3x higher Claude Pro usage limits",
   "settings.modelProvider.codingPlan.zai.plan.pro.name": "Pro",
