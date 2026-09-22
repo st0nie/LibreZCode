@@ -191,6 +191,9 @@ jobs:
         env:
           ZCODE_ENV: production
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # electron-builder 的 GitHub publisher 在打包时会尝试把产物上传到 release，
+          # 需要 GH_TOKEN；否则报 "GitHub Personal Access Token is not set"。
+          GH_TOKEN: ${{ github.token }}
         run: pnpm bundle:desktop -- --os ${{ matrix.target }} --arch ${{ matrix.arch }}
 
       - name: Upload desktop asset to release

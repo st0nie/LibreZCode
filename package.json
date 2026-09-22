@@ -81,6 +81,10 @@
   "peerDependencies": {
     "@tanstack/react-virtual": "^3.13.23"
   },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "packageManager": "pnpm@10.33.2",
   "pnpm": {
     "overrides": {
       "react": "19.2.7",
@@ -91,9 +95,5 @@
       "@ai-sdk/openai-compatible@2.0.60": "patches/@ai-sdk__openai-compatible@2.0.60.patch",
       "@ai-sdk/anthropic@3.0.81": "patches/@ai-sdk__anthropic@3.0.81.patch"
     }
-  },
-  "engines": {
-    "node": ">=24.0.0"
-  },
-  "packageManager": "pnpm@10.33.2"
+  }
 }
