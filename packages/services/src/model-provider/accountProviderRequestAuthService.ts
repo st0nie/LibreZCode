@@ -72,7 +72,13 @@ class AccountProviderRequestAuthService implements AccountRequestAuthResolver {
 
     if (access.planKind === "start-plan") {
       const tokenSet = await this.#options.loadOAuthTokenSet(resolveOAuthProviderId(access.family));
-      return { apiKey: requireApiKey(tokenSet?.zcodeJwtToken, providerId) };
+      // Start Plan 模型调用要用业务 access_token(oauth:zai:access_token,1404 字符,含
+      // user_key/customer_id),而不是平台 zcodeJwtToken(255,token_version:0 会被网关
+      // 判 auth_failed)。zaiProviderAdapter 登录时把业务 token 持久化到 oauth:zai:access_token,
+      // 这里优先用它;zcodeJwtToken 仅作兼容回退。
+      return {
+        apiKey: requireApiKey(tokenSet?.accessToken ?? tokenSet?.zcodeJwtToken, providerId),
+      };
     }
 
     if (access.planKind === "individual-coding-plan") {
