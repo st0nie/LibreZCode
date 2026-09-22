@@ -275,6 +275,24 @@ export interface PrintPageToPdfResult {
   error?: string;
 }
 
+/** webRemoteControl(手机远控)状态，对齐闭源 3.14.1。 */
+export interface WebRemoteControlStatus {
+  status: "idle" | "starting" | "running" | "active" | "error";
+  sessionId: string;
+  windowControlSessionId: string;
+  mobileConnected: boolean;
+  mobileViewState?: unknown;
+  mobileDeviceInfo?: unknown;
+  qrUrl: string;
+  connectUrl: string;
+  workspacePath: string;
+  workspaceIdentity?: string;
+  remoteSessionId?: string;
+  initialTaskId?: string;
+  error?: string;
+  failure?: { reason: string; message: string };
+}
+
 export function createOpenInEditorRemoteTarget(target: RemoteTarget): OpenInEditorRemoteTarget {
   switch (target.kind) {
     case "ssh":
@@ -540,6 +558,26 @@ export interface IPlatformService {
    * 页面尺寸由 renderer 注入的 @page CSS 决定（preferCSSPageSize）；仅 Desktop 实现。
    */
   printPageToPdf?(): Promise<PrintPageToPdfResult>;
+
+  /** 手机远控:启动 WebSocket relay 配对(QR 码生成) */
+  startWebRemoteControl?(params: {
+    workspacePath: string;
+    workspaceIdentity?: string;
+    remoteSessionId?: string;
+    initialTaskId?: string;
+  }): Promise<WebRemoteControlStatus>;
+
+  /** 手机远控:停止 */
+  stopWebRemoteControl?(): Promise<void>;
+
+  /** 手机远控:查询当前状态 */
+  getWebRemoteControlStatus?(): Promise<WebRemoteControlStatus | undefined>;
+
+  /** 手机远控:订阅状态变更，返回 disposer */
+  onWebRemoteControlStatusChanged?(callback: (status: WebRemoteControlStatus) => void): () => void;
+
+  /** 手机远控:重置配对(清除 deviceSid/passHash) */
+  resetWebRemoteControlPairing?(): Promise<void>;
 
   /**
    * 从浏览器 File 对象解析宿主本地路径；只有 Desktop preload 能安全实现。

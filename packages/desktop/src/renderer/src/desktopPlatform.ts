@@ -16,6 +16,23 @@ export function createDesktopPlatform(options: {
     createTempTextAttachment: (payload) => window.zcode.createTempTextAttachment(payload),
     onRemoteConnectionLog: (handler) => window.zcode.onRemoteConnectionLog(handler),
     onRemoteSessionClosed: (handler) => window.zcode.onRemoteSessionClosed(handler),
+    startWebRemoteControl: (params) =>
+      window.zcode.startWebRemoteControl?.(params) ??
+      Promise.resolve({
+        status: "idle",
+        sessionId: "",
+        windowControlSessionId: "",
+        mobileConnected: false,
+        qrUrl: "",
+        connectUrl: "",
+        workspacePath: params.workspacePath,
+      }),
+    stopWebRemoteControl: () => window.zcode.stopWebRemoteControl?.() ?? Promise.resolve(),
+    getWebRemoteControlStatus: () => window.zcode.getWebRemoteControlStatus?.(),
+    onWebRemoteControlStatusChanged: (handler) =>
+      window.zcode.onWebRemoteControlStatusChanged?.(handler) ?? (() => {}),
+    resetWebRemoteControlPairing: () =>
+      window.zcode.resetWebRemoteControlPairing?.() ?? Promise.resolve(),
     activateOrSetWorkspace: (path) =>
       window.zcode.activateOrSetWorkspace?.(path) ?? Promise.resolve({ activated: false }),
     connectRemote: (remoteOptions, requestId, context) =>

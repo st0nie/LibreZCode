@@ -219,6 +219,7 @@ export type {
   UpdateCheckResultPayload,
   UpdateStatePayload,
   WSLDistro,
+  WebRemoteControlStatus,
   ZCodeStdioTapDevState,
 } from "./platform.js";
 export type {

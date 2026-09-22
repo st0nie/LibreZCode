@@ -205,6 +205,9 @@ import {
   saveCliMcpToUserDirectory,
 } from "./mcpUserDirectory/index.js";
 import { registerRemoteIpcHandlers } from "./desktopMainIpcRemote.js";
+import { createWebRemoteControlManager } from "./webRemoteControlManager.js";
+import { createWebRemoteControlRelayAuthStorageProvider } from "./webRemoteControlDeviceTransport.js";
+import { registerWebRemoteControlIpcHandlers } from "./webRemoteControlIpc.js";
 import {
   configureDesktopStabilityTelemetry,
   getStabilityLifecycleScene,
@@ -2092,6 +2095,38 @@ app.whenReady().then(async () => {
     rollout: rendererActionTraceRollout,
     broker: rendererActionTraceBroker,
     env: process.env,
+    logger,
+  });
+
+  // webRemoteControl(手机远控)服务创建,对齐闭源 3.14.1
+  const webRemoteControlManager = createWebRemoteControlManager({
+    getRelayWsUrl: async () => {
+      const origin = await resolveCurrentZCodeEndpointOrigin();
+      return new URL("/api/v1/web-remote-control/relay", origin).toString().replace("http", "ws");
+    },
+    getRemoteUrl: async () => {
+      const origin = await resolveCurrentZCodeEndpointOrigin();
+      return new URL("/web-remote-control", origin).toString();
+    },
+    deviceMid,
+    deviceName: os.hostname(),
+    appVersion: ZCODE_VERSION || app.getVersion(),
+    authStorageProvider: createWebRemoteControlRelayAuthStorageProvider({
+      credentialService: appTelemetryCredentialService,
+      loadSettings: () => mainSettingService.get(),
+      patchSettings: (patch) => mainSettingService.update(patch),
+      logger,
+    }),
+    onStatusChanged: (windowId, status) => {
+      const win = BrowserWindow.fromId(windowId);
+      if (win && !win.isDestroyed()) {
+        win.webContents.send(PlatformChannels.WebRemoteControlStatusChanged, status);
+      }
+    },
+    logger,
+  });
+  registerWebRemoteControlIpcHandlers({
+    manager: webRemoteControlManager,
     logger,
   });
 

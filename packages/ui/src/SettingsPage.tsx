@@ -71,6 +71,7 @@ import { HooksSection } from "@/settings/HooksSection.js";
 import { WorkspaceFileSearchSection } from "@/settings/WorkspaceFileSearchSection.js";
 import { MemorySettingsSection } from "@/settings/MemorySettingsSection.js";
 import { BrowserSettingsSection } from "@/settings/BrowserSettingsSection.js";
+import { WebRemoteControlSettingSection } from "@/settings/WebRemoteControlSettingSection.js";
 import { ComputerUseSection } from "@/settings/ComputerUseSection.js";
 import { ShortcutSettingsSection } from "@/settings/ShortcutSettingsSection.js";
 import { MigrationSection } from "@/settings/MigrationSection.js";
@@ -1900,6 +1901,12 @@ export function SettingsPage({
                           <AutomationsSection
                             workspacePath={activeWorkspacePath}
                             workspaceIdentity={activeWorkspaceIdentity}
+                          />
+                        ) : activeSection === "webRemoteControl" ? (
+                          <WebRemoteControlSettingSection
+                            workspacePath={activeWorkspacePath ?? captionWorkspacePath ?? ""}
+                            workspaceIdentity={activeWorkspaceIdentity}
+                            remoteSessionId={activeWorkspaceTab?.remoteSessionId}
                           />
                         ) : activeSection === "commands" ? (
                           <PluginsSection

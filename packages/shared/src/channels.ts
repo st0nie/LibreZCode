@@ -176,6 +176,18 @@ export const PlatformChannels = {
   ActivateOrSetWorkspace: "zcode:activate-or-set-workspace",
   /** 建立 SSH 远程连接 */
   ConnectRemote: "zcode:connect-remote",
+  /** 手机远控:启动 WebSocket relay 配对(QR 码生成) */
+  StartWebRemoteControl: "zcode:start-web-remote-control",
+  /** 手机远控:停止 */
+  StopWebRemoteControl: "zcode:stop-web-remote-control",
+  /** 手机远控:查询当前状态 */
+  GetWebRemoteControlStatus: "zcode:get-web-remote-control-status",
+  /** 手机远控:状态变更推送(Main → Renderer) */
+  WebRemoteControlStatusChanged: "zcode:web-remote-control-status-changed",
+  /** 手机远控:重置配对(清除 deviceSid/passHash) */
+  ResetWebRemoteControlPairing: "zcode:reset-web-remote-control-pairing",
+  /** 手机远控:重连 workspace */
+  WebRemoteControlReconnectWorkspace: "zcode:web-remote-control-reconnect-workspace",
   /** 取消当前窗口正在进行中的远程连接 */
   CancelPendingRemoteConnection: "zcode:cancel-pending-remote-connection",
   /** Renderer → Main：绑定远程 logical session 的 canonical workspace context */
@@ -702,6 +714,61 @@ export interface PlatformChannelMap {
   [PlatformChannels.ConnectRemote]: {
     request: ConnectRemoteRequest;
     response: { success: boolean; error?: string; sessionId?: string };
+  };
+  [PlatformChannels.StartWebRemoteControl]: {
+    request: {
+      workspacePath: string;
+      workspaceIdentity?: string;
+      remoteSessionId?: string;
+      initialTaskId?: string;
+    };
+    response: {
+      status: "idle" | "starting" | "running" | "active" | "error";
+      sessionId: string;
+      windowControlSessionId: string;
+      mobileConnected: boolean;
+      qrUrl: string;
+      connectUrl: string;
+      workspacePath: string;
+      workspaceIdentity?: string;
+      remoteSessionId?: string;
+      initialTaskId?: string;
+      error?: string;
+      failure?: { reason: string; message: string };
+    };
+  };
+  [PlatformChannels.StopWebRemoteControl]: {
+    request: void;
+    response: void;
+  };
+  [PlatformChannels.GetWebRemoteControlStatus]: {
+    request: void;
+    response: {
+      status: "idle" | "starting" | "running" | "active" | "error";
+      sessionId: string;
+      windowControlSessionId: string;
+      mobileConnected: boolean;
+      qrUrl: string;
+      connectUrl: string;
+      workspacePath: string;
+      workspaceIdentity?: string;
+      remoteSessionId?: string;
+      initialTaskId?: string;
+      error?: string;
+      failure?: { reason: string; message: string };
+    };
+  };
+  [PlatformChannels.WebRemoteControlStatusChanged]: {
+    request: void;
+    response: void;
+  };
+  [PlatformChannels.ResetWebRemoteControlPairing]: {
+    request: void;
+    response: void;
+  };
+  [PlatformChannels.WebRemoteControlReconnectWorkspace]: {
+    request: { workspacePath: string; workspaceIdentity?: string; remoteSessionId?: string };
+    response: void;
   };
   [PlatformChannels.CancelPendingRemoteConnection]: {
     request: CancelPendingRemoteConnectionRequest;

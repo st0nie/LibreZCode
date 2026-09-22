@@ -321,6 +321,33 @@ contextBridge.exposeInMainWorld("zcode", {
     ipcRenderer.on(PlatformChannels.RemoteSessionClosed, handler);
     return () => ipcRenderer.removeListener(PlatformChannels.RemoteSessionClosed, handler);
   },
+  /** 手机远控:启动 WebSocket relay 配对(QR 码生成) */
+  startWebRemoteControl: (params: {
+    workspacePath: string;
+    workspaceIdentity?: string;
+    remoteSessionId?: string;
+    initialTaskId?: string;
+  }) => ipcRenderer.invoke(PlatformChannels.StartWebRemoteControl, params),
+  /** 手机远控:停止 */
+  stopWebRemoteControl: () => ipcRenderer.invoke(PlatformChannels.StopWebRemoteControl),
+  /** 手机远控:查询当前状态 */
+  getWebRemoteControlStatus: () => ipcRenderer.invoke(PlatformChannels.GetWebRemoteControlStatus),
+  /** 手机远控:订阅状态变更，返回 disposer */
+  onWebRemoteControlStatusChanged: (callback: (status: unknown) => void) => {
+    const handler = (_event: unknown, payload: unknown) => callback(payload);
+    ipcRenderer.on(PlatformChannels.WebRemoteControlStatusChanged, handler);
+    return () =>
+      ipcRenderer.removeListener(PlatformChannels.WebRemoteControlStatusChanged, handler);
+  },
+  /** 手机远控:重置配对(清除 deviceSid/passHash) */
+  resetWebRemoteControlPairing: () =>
+    ipcRenderer.invoke(PlatformChannels.ResetWebRemoteControlPairing),
+  /** 手机远控:重连 workspace */
+  webRemoteControlReconnectWorkspace: (params: {
+    workspacePath: string;
+    workspaceIdentity?: string;
+    remoteSessionId?: string;
+  }) => ipcRenderer.invoke(PlatformChannels.WebRemoteControlReconnectWorkspace, params),
   /** 检查目录是否已在其他窗口打开 */
   activateOrSetWorkspace: (path: string): Promise<{ activated: boolean }> =>
     ipcRenderer.invoke(PlatformChannels.ActivateOrSetWorkspace, path),
