@@ -226,6 +226,16 @@ export {
   ICodingPlanSubscriptionService,
   type OffPeakClientConfig,
 } from "./coding-plan-subscription/codingPlanSubscription.js";
+
+// MarketingTouch(营销弹窗)服务 — 对齐闭源 3.14.1,契约见 .agents/specs/marketingTouch.md
+export {
+  createMarketingTouchService,
+  type IMarketingTouchService,
+  type MarketingTouch,
+  type MarketingTouchLocale,
+  type MarketingTouchReportParams,
+  MARKETING_TOUCH_LOCALES,
+} from "./marketing/marketingTouchService.js";
 export {
   IClientScenesService,
   type ClientSceneConfig,

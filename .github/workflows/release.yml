@@ -181,6 +181,10 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - name: Install Linux build dependencies (bsdtar for pacman packaging)
+        if: matrix.target == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y libarchive-tools
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
