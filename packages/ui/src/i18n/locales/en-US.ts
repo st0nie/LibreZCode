@@ -3985,6 +3985,7 @@ const enUS: Record<string, string> = {
   "settings.hooks.review.reason.rejected": "Request rejected",
   "settings.hooks.title": "Hooks",
   "settings.workspaceFileSearch.title": "Workspace Search Scope",
+  "settings.webRemoteControl.title": "Mobile remote control",
   "settings.workspaceFileSearch.description":
     "Edit .zcodeignore rules (gitignore syntax) that scope workspace file search. Takes effect on the next search after saving.",
   "settings.workspaceFileSearch.templateHint":

@@ -3736,6 +3736,7 @@ const zhCN: Record<string, string> = {
   "settings.hooks.review.reason.rejected": "操作被拒绝",
   "settings.hooks.title": "钩子",
   "settings.workspaceFileSearch.title": "工作区搜索范围",
+  "settings.webRemoteControl.title": "移动端远程控制",
   "settings.workspaceFileSearch.description":
     "编辑 .zcodeignore 忽略规则（语法与 .gitignore 一致），控制工作区文件搜索的范围。保存后下次搜索生效。",
   "settings.workspaceFileSearch.templateHint":
