@@ -1,0 +1,215 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本号（不含 v 前缀，例如 3.14.0-libre.1）"
+        required: true
+        type: string
+      prerelease:
+        description: "标记为预发布（Pre-release）"
+        required: false
+        type: boolean
+        default: true
+      build_artifacts:
+        description: "构建 CLI 发行包和桌面客户端并上传到 Release"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.validate.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version
+        id: validate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$'; then
+            echo "::error::Invalid version \"$VERSION\". Expected semver like 3.14.0 or 3.14.0-libre.1"
+            exit 1
+          fi
+          TAG="v$VERSION"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists"
+            exit 1
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Release $TAG already exists"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.validate.outputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+          cat > /tmp/release-notes.md <<'NOTES'
+          ## 安装
+
+          > 安装包未做代码签名（macOS 未公证），首次打开会被系统安全机制拦截，属预期行为；
+          > 放行前可按本页 sha256.txt 校验下载文件。
+
+          ### macOS（.dmg）
+          下载对应机型 .dmg，拖入“应用程序”。未签名/未公证被 Gatekeeper 拦截时任选：
+          ```bash
+          sudo xattr -rd com.apple.quarantine "/Applications/ZCode.app"
+          open -a "ZCode"
+          ```
+          或在访达右键 → 打开 → 再点“打开”。
+
+          ### Windows（.exe）
+          双击安装。SmartScreen 弹“Windows 已保护你的电脑”→ 更多信息 → 仍要运行。
+
+          ### Linux（.AppImage）
+          ```bash
+          chmod +x ZCode*linux*.AppImage
+          ./ZCode*linux*.AppImage
+          ```
+
+          ### CLI 发行包（.tar.gz）
+          ```bash
+          tar -xzf zcode-*.tar.gz
+          cd zcode
+          ./install.sh        # 安装 zcode 命令（默认 ~/.zcode/runtime）
+          node bin/zcode.mjs --help   # 或直接运行
+          ```
+          CLI 发行包需要 Node.js 24。
+          NOTES
+          args=(--title "$TAG" --notes-file /tmp/release-notes.md)
+          if [ "$PRERELEASE" = "true" ]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$TAG" "${args[@]}"
+
+  build:
+    needs: release
+    if: ${{ inputs.build_artifacts }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project references
+        run: pnpm typecheck
+
+      - name: Build ZCode CLI distribution
+        env:
+          ZCODE_DIST_BASE_URL: https://github.com/${{ github.repository }}/releases/download/${{ needs.release.outputs.tag }}/
+          RELEASE_TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          pnpm build:zcode -- --version "${RELEASE_TAG#v}"
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            dist/zcode/releases/*/zcode-*.tar.gz \
+            dist/zcode/releases/*/sha256.txt \
+            dist/zcode/install.sh \
+            dist/zcode/latest.json \
+            --clobber
+
+  desktop:
+    needs: release
+    if: ${{ inputs.build_artifacts }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            target: mac
+            arch: arm64
+            glob: "*.dmg"
+          - runner: macos-15-intel
+            target: mac
+            arch: x64
+            glob: "*.dmg"
+          - runner: windows-latest
+            target: win
+            arch: x64
+            glob: "*.exe"
+          - runner: ubuntu-latest
+            target: linux
+            arch: x64
+            glob: "*.AppImage"
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project references
+        run: pnpm typecheck
+
+      - name: Bundle desktop app
+        env:
+          ZCODE_ENV: production
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: pnpm bundle:desktop -- --os ${{ matrix.target }} --arch ${{ matrix.arch }}
+
+      - name: Upload desktop asset to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          ls -la packages/desktop/dist/
+          shopt -s nullglob
+          files=(
+            packages/desktop/dist/${{ matrix.glob }}
+            packages/desktop/dist/latest*.yml
+            packages/desktop/dist/*.zip
+            packages/desktop/dist/*.blockmap
+          )
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no desktop assets matched in packages/desktop/dist"
+            exit 1
+          fi
+          gh release upload "$TAG" "${files[@]}" --clobber

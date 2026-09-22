@@ -128,9 +128,7 @@ export function CodingPlanBillingDiscountInfo({
  * 当前 locale 无 badgeBody 时整体不渲染;info 色调跟随 variant
  * (surface 说明徽章在渐变按钮上,ⓘ 用 onGradient)。
  */
-export function CodingPlanBillingDiscountBadgeWithInfo(
-  props: CodingPlanBillingDiscountBadgeProps,
-) {
+export function CodingPlanBillingDiscountBadgeWithInfo(props: CodingPlanBillingDiscountBadgeProps) {
   const { locale } = useZCodeIntl();
   const copy: CodingPlanBillingDiscountLocaleCopy = resolveCodingPlanBillingDiscountCopy(
     props.config,

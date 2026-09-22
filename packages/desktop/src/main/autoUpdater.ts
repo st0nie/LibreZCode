@@ -2,12 +2,10 @@
 import type { ISettingService } from "@zcode/services";
 import {
   DEFAULT_LOCALE,
-  DEFAULT_ZCODE_ENDPOINT_ORIGIN,
   desktopMenuMessageIds,
   formatDesktopMenuMessage,
   getDesktopMenuMessage,
   PlatformChannels,
-  resolveRuntimeZCodeEndpointOrigin,
   ZCODE_VERSION,
   type ElectronReleaseChannel,
   type Locale,
@@ -760,13 +758,13 @@ function applyUpdateFeedSource(options: InitAutoUpdaterOptions): void {
   autoUpdater.setFeedURL({
     provider: "github",
     owner: "st0nie",
-    repo: "zcode-libre",
+    repo: "LibreZCode",
     ...(manifestUrl ? { url: manifestUrl } : {}),
   });
   logger.info(
     manifestUrl
       ? `[auto-update] github releases provider applied feedUrl=${redactUpdateFeedUrlForLog(manifestUrl)}`
-      : "[auto-update] github releases provider applied (st0nie/zcode-libre)",
+      : "[auto-update] github releases provider applied (st0nie/LibreZCode)",
   );
 }
 
@@ -1500,6 +1498,8 @@ export async function initAutoUpdater(options: InitAutoUpdaterOptions = {}): Pro
   // 这里仅在 Windows 关闭“退出即自动安装”，要求用户显式点更新；其他平台保持原有行为，避免改动既有升级链路。
   autoUpdater.autoInstallOnAppQuit = process.platform !== "win32";
   autoUpdater.logger = logger;
+  // 发布均为 Pre-release：开启 allowPrerelease，否则 GitHub provider 只认 latest 稳定版。
+  autoUpdater.allowPrerelease = true;
   applyUpdateFeedSource(options);
 
   const triggerCheckForUpdates = (reason: string) => {

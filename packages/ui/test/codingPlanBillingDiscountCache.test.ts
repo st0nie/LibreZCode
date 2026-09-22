@@ -12,9 +12,7 @@ const CONFIG: CodingPlanBillingDiscountConfig = {
   "en-US": { badgeBody: "150% quota" },
 };
 
-function createService(
-  impl: () => Promise<CodingPlanBillingDiscountConfig | undefined>,
-): {
+function createService(impl: () => Promise<CodingPlanBillingDiscountConfig | undefined>): {
   callCount: () => number;
   service: { getBillingDiscount: () => Promise<CodingPlanBillingDiscountConfig | undefined> };
 } {

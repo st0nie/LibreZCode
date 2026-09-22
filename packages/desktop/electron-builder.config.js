@@ -759,6 +759,6 @@ export default {
     // allowPrerelease 拉取。文件路径、校验和与下载安装由 electron-updater 处理。
     provider: "github",
     owner: "st0nie",
-    repo: "zcode-libre",
+    repo: "LibreZCode",
   },
 };

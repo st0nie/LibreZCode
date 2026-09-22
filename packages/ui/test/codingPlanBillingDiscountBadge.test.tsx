@@ -7,10 +7,7 @@ import {
 } from "@zcode/shared";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
-import {
-  IntlContext,
-  type IntlContextValue,
-} from "../src/i18n/IntlProvider.js";
+import { IntlContext, type IntlContextValue } from "../src/i18n/IntlProvider.js";
 import { ServiceProvider } from "../src/hooks/useServices.js";
 import {
   CodingPlanBillingDiscountBadge,
@@ -33,8 +30,7 @@ const intlValue: IntlContextValue = {
   intl: {
     formatMessage: ({ id }) => {
       const messages: Record<string, string> = {
-        "settings.modelProvider.codingPlan.billingDiscountInfo.open":
-          "查看 150% 配额活动说明",
+        "settings.modelProvider.codingPlan.billingDiscountInfo.open": "查看 150% 配额活动说明",
       };
       return messages[id] ?? id;
     },

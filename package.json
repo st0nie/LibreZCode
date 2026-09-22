@@ -3,6 +3,12 @@
   "version": "3.14.0",
   "private": true,
   "license": "Apache-2.0",
+  "workspaces": [
+    "packages/*",
+    "apps/zcode-cli",
+    "apps/zcode-cli/packages/*",
+    "apps/zcode-cli/tools/*"
+  ],
   "type": "module",
   "scripts": {
     "dev:web": "concurrently -k -n server,web -c blue,green \"pnpm --filter @zcode/server dev\" \"pnpm --filter @zcode/web dev\"",
@@ -75,23 +81,17 @@
   "peerDependencies": {
     "@tanstack/react-virtual": "^3.13.23"
   },
-  "engines": {
-    "node": ">=24.0.0"
-  },
-  "packageManager": "pnpm@10.33.2",
   "overrides": {
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "packageManager": "pnpm@10.33.2",
   "patchedDependencies": {
     "@arms/rum-electron@0.0.3": "patches/@arms__rum-electron@0.0.3.patch",
     "@ai-sdk/openai-compatible@2.0.60": "patches/@ai-sdk__openai-compatible@2.0.60.patch",
     "@ai-sdk/anthropic@3.0.81": "patches/@ai-sdk__anthropic@3.0.81.patch"
-  },
-  "workspaces": [
-    "packages/*",
-    "apps/zcode-cli",
-    "apps/zcode-cli/packages/*",
-    "apps/zcode-cli/tools/*"
-  ]
+  }
 }
