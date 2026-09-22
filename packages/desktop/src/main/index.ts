@@ -2109,7 +2109,7 @@ app.whenReady().then(async () => {
       return new URL("/web-remote-control", origin).toString();
     },
     deviceMid,
-    deviceName: os.hostname(),
+    deviceName: hostname(),
     appVersion: ZCODE_VERSION || app.getVersion(),
     authStorageProvider: createWebRemoteControlRelayAuthStorageProvider({
       credentialService: appTelemetryCredentialService,
