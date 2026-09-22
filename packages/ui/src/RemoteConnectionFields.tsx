@@ -97,6 +97,14 @@ export function RemoteConnectionFields({
   setWslUser,
   setDockerContainer,
   setManualDockerContainer,
+  serverUrl,
+  serverName,
+  serverToken,
+  serverWorkspacePath,
+  setServerUrl,
+  setServerName,
+  setServerToken,
+  setServerWorkspacePath,
 }: {
   kind: RemoteTarget["kind"];
   host: string;
@@ -135,6 +143,14 @@ export function RemoteConnectionFields({
   setWslUser?: (value: string) => void;
   setDockerContainer: (value: string) => void;
   setManualDockerContainer: (value: string) => void;
+  serverUrl: string;
+  serverName: string;
+  serverToken: string;
+  serverWorkspacePath: string;
+  setServerUrl: (value: string) => void;
+  setServerName: (value: string) => void;
+  setServerToken: (value: string) => void;
+  setServerWorkspacePath: (value: string) => void;
 }) {
   const { intl } = useZCodeIntl();
   const platform = usePlatform();
@@ -707,6 +723,77 @@ export function RemoteConnectionFields({
                 {intl.formatMessage({ id: "docker.manualContainerHint" })}
               </p>
             ) : null}
+          </div>
+        </div>
+      );
+    case "server":
+      return (
+        <div className="space-y-3">
+          <p className="text-ui-base text-foreground-subtle">
+            {intl.formatMessage({ id: "server.description" })}
+          </p>
+          <div>
+            <label className="mb-1 block text-ui-base text-foreground-subtle">
+              {intl.formatMessage({ id: "server.url" })}
+            </label>
+            <Input
+              size="lg"
+              className="h-9 text-ui-base"
+              value={serverUrl}
+              onChange={(event) => setServerUrl(event.target.value)}
+              placeholder={intl.formatMessage({ id: "server.urlPlaceholder" })}
+              autoCapitalize="none"
+              spellCheck={false}
+              data-testid="remote-server-url-input"
+            />
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-ui-base text-foreground-subtle">
+                {intl.formatMessage({ id: "server.name" })}
+              </label>
+              <Input
+                size="lg"
+                className="h-9 text-ui-base"
+                value={serverName}
+                onChange={(event) => setServerName(event.target.value)}
+                placeholder={intl.formatMessage({ id: "server.namePlaceholder" })}
+                data-testid="remote-server-name-input"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-ui-base text-foreground-subtle">
+                {intl.formatMessage({ id: "server.token" })}
+              </label>
+              <Input
+                size="lg"
+                className="h-9 text-ui-base"
+                value={serverToken}
+                onChange={(event) => setServerToken(event.target.value)}
+                placeholder={intl.formatMessage({ id: "server.tokenPlaceholder" })}
+                autoCapitalize="none"
+                spellCheck={false}
+                data-testid="remote-server-token-input"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-ui-base text-foreground-subtle">
+              {intl.formatMessage({ id: "server.workspacePath" })}
+            </label>
+            <Input
+              size="lg"
+              className="h-9 text-ui-base"
+              value={serverWorkspacePath}
+              onChange={(event) => setServerWorkspacePath(event.target.value)}
+              placeholder={intl.formatMessage({ id: "server.workspacePathPlaceholder" })}
+              autoCapitalize="none"
+              spellCheck={false}
+              data-testid="remote-server-workspace-path-input"
+            />
+            <p className="mt-1 text-ui-base text-foreground-subtle">
+              {intl.formatMessage({ id: "server.workspacePathDescription" })}
+            </p>
           </div>
         </div>
       );

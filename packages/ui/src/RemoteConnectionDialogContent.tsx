@@ -157,6 +157,10 @@ export function RemoteConnectionSettingsStep({
   wslDistros,
   dockerContainer,
   manualDockerContainer,
+  serverUrl,
+  serverName,
+  serverToken,
+  serverWorkspacePath,
   dockerContainers,
   dockerAvailable,
   sshConfigAliases,
@@ -181,6 +185,10 @@ export function RemoteConnectionSettingsStep({
   onWslUserChange,
   onDockerContainerChange,
   onManualDockerContainerChange,
+  onServerUrlChange,
+  onServerNameChange,
+  onServerTokenChange,
+  onServerWorkspacePathChange,
   onDockerContainersRefresh,
   onApplySshConfigAlias,
   onClearSelectedSshConfigAlias,
@@ -200,6 +208,10 @@ export function RemoteConnectionSettingsStep({
   wslDistros: WSLDistro[];
   dockerContainer: string;
   manualDockerContainer: string;
+  serverUrl: string;
+  serverName: string;
+  serverToken: string;
+  serverWorkspacePath: string;
   dockerContainers: DockerContainerInfo[];
   dockerAvailable: boolean | null;
   sshConfigAliases: SSHConfigAliasOption[];
@@ -224,6 +236,10 @@ export function RemoteConnectionSettingsStep({
   onWslUserChange?: (value: string) => void;
   onDockerContainerChange: (value: string) => void;
   onManualDockerContainerChange: (value: string) => void;
+  onServerUrlChange: (value: string) => void;
+  onServerNameChange: (value: string) => void;
+  onServerTokenChange: (value: string) => void;
+  onServerWorkspacePathChange: (value: string) => void;
   onDockerContainersRefresh?: () => void;
   onApplySshConfigAlias: (value: SSHConfigAliasOption) => void;
   onClearSelectedSshConfigAlias: () => void;
@@ -283,6 +299,14 @@ export function RemoteConnectionSettingsStep({
           setWslUser={onWslUserChange}
           setDockerContainer={onDockerContainerChange}
           setManualDockerContainer={onManualDockerContainerChange}
+          serverUrl={serverUrl}
+          serverName={serverName}
+          serverToken={serverToken}
+          serverWorkspacePath={serverWorkspacePath}
+          setServerUrl={onServerUrlChange}
+          setServerName={onServerNameChange}
+          setServerToken={onServerTokenChange}
+          setServerWorkspacePath={onServerWorkspacePathChange}
           refreshDockerContainers={onDockerContainersRefresh}
         />
       </div>
