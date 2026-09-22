@@ -1,223 +1,148 @@
-# ZCode
+# LibreZCode
 
-<div align="center">
-  <img src="public/logo/icons/1024x1024.png" alt="ZCode" width="128" height="128" />
-</div>
-<p align="center">
-  <a href="https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=47ag983c-8fcb-4d6d-814b-5395193a712c&amp;qr_code=true">飞书社群</a> ·
-  <a href="https://discord.gg/z9aBcQXZQ3">Discord</a>
-</p>
-<p align="center">
-  简体中文 | <a href="README.en.md">English</a>
-</p>
+[English](#english) | 中文
 
-ZCode 是 AI 编程工作台，提供桌面应用、浏览器界面和终端 Agent。本仓库包含客户端、后端服务、共享 UI，以及 Agent CLI 与运行时源码。
+> ZCode 的开源复刻版。基于 [zai-org/ZCode](https://github.com/zai-org/ZCode)(开源版,3.14.0),通过逆向闭源 ZCode Desktop 3.14.1,补齐了开源版缺失的闭源功能,目标是**与闭源版行为一致**。
 
-| 入口                 | 用途                                                           | 开发命令                       |
-| -------------------- | -------------------------------------------------------------- | ------------------------------ |
-| Desktop              | Electron 桌面应用                                              | `pnpm dev:desktop`             |
-| Web / ZCode 命令行版 | 终端与浏览器工作台；将 TUI、Web、后端和 Agent 组装为独立运行包 | `pnpm dev:web`                 |
-| Agent CLI            | 在终端中使用 `zcode`，也为 Desktop 和 Web 提供 Agent 运行时    | `pnpm --filter @zcode/cli dev` |
+[![Release](https://github.com/st0nie/LibreZCode/actions/workflows/release.yml/badge.svg)](https://github.com/st0nie/LibreZCode/releases)
 
-## 初始化
+---
 
-准备 Git、Node.js **24.14.0** 和 pnpm **10.33.2**，版本以 [mise.toml](mise.toml) 为准。以下开发和打包命令均在仓库根目录执行。
+## 这是什么
+
+ZAI 官方把 ZCode 的核心以 MIT 协议开源(`zai-org/ZCode`),但**桌面端的若干功能只在闭源 AppImage 里提供**,开源仓库里没有:
+
+- 额度优惠(150% 配额活动)
+- 手机远控(桌面 ↔ 手机扫码互控)
+- 机器人通知(Telegram / 飞书 / 微信 / Webhook …)
+- 营销弹窗、权益领取、server 远程连接 等
+
+**LibreZCode 把这些闭源功能逆向并补了回来**,让你能用上开源、可自托管、可审计的完整版 ZCode。
+
+> 本仓库是 `zai-org/ZCode` 的 fork,保留上游同步能力。
+
+---
+
+## 相比原开源版的修改
+
+> 详细实现见 [`ZCode额度优惠实现方案调研.md`](./ZCode额度优惠实现方案调研.md) 与 [`.agents/specs/`](./.agents/specs/) 下的契约文档。
+
+### ✅ 已补齐的闭源功能
+
+| 功能                           | 说明                                                                                                                                          | 主要位置                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **额度优惠(billingDiscount)**  | 服务端按 locale 下发纯文案/Markdown 配置,客户端只校验+缓存 1h+渲染徽章/ⓘ弹窗;3 个露出点(升级按钮/余额面板/额度不足横幅)。完全对齐闭源 3.14.1  | `shared` / `services` / `ui`               |
+| **更新通道 → GitHub Releases** | 运行时 autoUpdater 从官方 endpoint 切到 GitHub Releases provider,支持自动更新                                                                 | `desktop/main/autoUpdater.ts`              |
+| **release.yml CI**             | GitHub Actions:校验版本→建 tag/release→构建 CLI + 桌面(mac-arm64/mac-x64/win-x64/linux-x64)→上传 assets                                       | `.github/workflows/release.yml`            |
+| **mode 五族模式映射**          | claude / codex / gemini / opencode / glm 的权限模式标签                                                                                       | `services/model-provider/display-help.ts`  |
+| **webRemoteControl(手机远控)** | WebSocket relay 配对协议(注册/认证/配对/心跳/重连) + 状态机 + RPC 帧路由(bootstrap/workspace-list/platform/workspace-bridge 等) + 设置页 UI   | `desktop/main/webRemoteControl*.ts`        |
+| **server RemoteTarget**        | 新增 `kind:"server"`(连接已运行的 ZCode server),含类型/schema/snapshot/连接表单(url/name/token/workspacePath)                                 | `shared` / `server/remote` / `ui`          |
+| **bots 机器人通知**            | Telegram / 飞书 / 微信 / Webhook / Discord / WeCom 的配置 CRUD + 推送;含运行时状态(权限/询问)schema                                           | `services/bots/botsService.ts` + 设置页 UI |
+| **marketingTouch(营销弹窗)**   | GET/POST `/api/v1/marketing/touch(/action)`,schemaVersion:1 的 campaign/feature/notice 弹窗 + action 上报                                     | `services/marketing` + UI 弹窗             |
+| **manualClaimPlan(权益领取)**  | 查询可领取体验套餐(`preview`)+ 领取(`claim`,阿里云验证码)                                                                                     | `services` + 横幅 UI                       |
+| **内置 10 插件**               | documents / pdf / spreadsheets / presentations / slides / skill-creator / plugin-creator / image-search / restore-legacy-sessions / zcode-cua | `apps/zcode-cli/packages/`                 |
+| **i18n 524 缺口键**            | bots / webRemoteControl / manualClaimPlan / mode / settings / marketingTouch / rewards 等的 zh-CN + en-US 文案                                | `ui/src/i18n/locales/`                     |
+
+### 🔧 工程修复
+
+- `package.json`:把 `overrides`/`patchedDependencies` 从顶层移到 `pnpm.*`(pnpm v9+ 只认后者,否则 CI `--frozen-lockfile` 报 lockfile 配置不匹配)。
+- `release.yml`:Linux job 补 `libarchive-tools`(提供 `bsdtar`),否则 electron-builder 打 pacman 包报 `exit code 127`。
+- 桌面入口:`webRemoteControl` 的 `deviceName` 误用未导入的 `os.hostname()` → `hostname()`(曾导致启动即 `ReferenceError`)。
+
+---
+
+## 构建与发布
+
+发布走 GitHub Actions(无需本地编译):
+
+1. **Actions → Release → Run workflow**
+2. 输入:`version`(如 `3.14.0-libre.5`)、`prerelease`、`build_artifacts=true`
+3. 自动:校验版本 → 创建 tag + Release → 构建 CLI 发行包 + 4 平台桌面包 → 上传 assets
+
+产物:`ZCode-*.{AppImage,dmg,exe,pkg.tar.zst}` + `zcode-*.tar.gz` + `install.sh` + 自动更新元数据。
+
+### 本地开发
 
 ```bash
-pnpm bootstrap
-```
-
-`pnpm bootstrap` 安装 workspace 依赖、准备桌面本地运行资源，再执行 `build:bootstrap`。
-
-Agent CLI 与运行时源码位于 [apps/zcode-cli/](apps/zcode-cli/)，作为普通目录随本仓库一起克隆，无需单独拉取或初始化 Git submodule。
-
-根据需要选择其他初始化或构建入口：
-
-| 命令                           | 用途                                                              |
-| ------------------------------ | ----------------------------------------------------------------- |
-| `pnpm install`                 | 安装依赖                                                          |
-| `pnpm prepare:desktop-runtime` | 准备桌面运行资源，默认包含远程资源准备                            |
-| `pnpm prepare:remote-assets`   | 单独准备远程运行资源                                              |
-| `pnpm bootstrap:with-remote`   | 初始化依赖、本地与远程资源，并串行构建相关包；跳过桌面应用 bundle |
-| `pnpm build`                   | 递归执行各 workspace 包的构建脚本，包括包内的资源准备步骤         |
-
-默认 `bootstrap` 跳过远程资源准备，适合本地桌面开发。使用远程工作区或验证远程发行资源时，再运行对应准备命令。
-
-## 开发与运行
-
-### 桌面版
-
-```bash
+pnpm install
+pnpm typecheck
+pnpm lint
 pnpm dev:desktop
-
-# 使用测试环境
-pnpm dev:desktop:test
 ```
 
-`pnpm dev:desktop` 默认等同于 `pnpm dev:desktop:prod`，使用生产服务配置。启动脚本会准备本地运行资源、构建桌面 Agent，再启动 Electron 和源码监听。
+### 老 AMD 显卡启动
 
-需要独立开发数据目录时，可设置 `ZCODE_DATA_BASE_DIR`。例如在 macOS / Linux 中：
+部分老 AMD 显卡(如 Oland / Radeon HD 8570 / R5 430)会因 GPU 进程崩溃导致白屏/起不来(Electron 已知问题,**官方闭源版同样起不来**)。强制软件渲染即可:
 
 ```bash
-ZCODE_DATA_BASE_DIR="$HOME/.zcode-dev-home" pnpm dev:desktop:test
+./ZCode-*-linux-x86_64.AppImage --no-sandbox --disable-gpu
 ```
 
-### 远程功能（SSH/WSL）
+> 与闭源版行为一致;`--disable-gpu` 只是绕过 GPU 加速,功能不受影响。
 
-先执行 `pnpm bootstrap:with-remote` 准备远程资源（mock-cdn），再 `pnpm dev:desktop`；连接远程项目时资源选择「本地下载后上传」。开发态资源取自本地 `packages/desktop/mock-cdn` 和本地构建产物，经 SFTP 上传到远程，不访问 CDN。
+---
 
-### Web 开发
+## 相比闭源版的不足(后续逐步优化)
 
-修改 Web 或后端源码时，使用开发模式：
+> 当前是**"核心数据流/业务逻辑已对齐,工程完成度还差最后一截"**。以下按优先级列出,欢迎认领。
 
-```bash
-pnpm dev:web
+### 高优先级 —— 影响"真能用"
 
-# 指定后端工作区（macOS / Linux）
-ZCODE_SERVER_WORKSPACE=/path/to/project pnpm dev:web
-```
+- **server / webRemote 的远端 RPC 真实接线**:`ServerBackend` 与 webRemote 的 `rpc-frame` 路由目前是**骨架**,真实"远端读写文件/执行命令/手机操控桌面"还需把 server RPC 协议完整接起来,否则远端功能是空转。
+- **闭源运行时尚有未逆向细节**:部分边角(如某些 campaign 的精确交互流、off-peak 完整调度)只补了契约与服务层,真实后端联动待验证。
 
-该命令同时启动 Web 开发服务器（默认 `http://localhost:5173`）和后端（默认 `http://localhost:3030`）；浏览器访问前者。`/ws` 和一般 `/api` 请求代理到本地后端，`/api/v1/oauth/token` 单独代理到当前配置的产品服务。
+### 中优先级 —— 影响"好用"
 
-Agent 源码修改后，执行 `pnpm --filter @zcode/cli... build` 并重启服务。需要验证完整发行包时，按下方“ZCode 命令行版”打包章节解压运行。
+- **UI 像素级差异**:marketingTouch / bots / manualClaimPlan 等弹窗是**功能骨架**,样式/间距/动效与闭源还有差距,未到像素级。
+- **i18n 文案为逆向填充**:524 个缺口键中部分文案是按语义补的,与闭源逐字一致度待核对。
 
-### ZCode 命令行版
+### 低优先级 —— 锦上添花
 
-命令行发行包包含 TUI、Web 和 Agent，统一使用 `zcode` 启动：无参数进入 TUI；第一个参数为 `--web` 时启动 Web；其他参数交给现有 Agent CLI 处理。两种模式都在本机运行，无需 Electron。
+- **遥测 / 官方平台深度集成**:按你的要求未对齐闭源的 ARMS 数仓上报(也不建议对齐)。
+- **部分功能仅服务层**:rewards、off-peak、campaign 完整交互流等,UI 可后续补。
 
-```bash
-# 默认进入终端交互界面
-zcode
+> 详见 [`ZCode额度优惠实现方案调研.md`](./ZCode额度优惠实现方案调研.md) 的实现汇总与 `.agents/specs/` 契约。
 
-# 启动 Web 界面
-zcode --web
+---
 
-# 指定项目和端口，不自动打开浏览器
-zcode --web --workspace /path/to/project --port 3030 --no-open
+## 免责声明
 
-# 查看 CLI 或 Web 参数
-zcode --help
-zcode --web --help
-```
+本项目仅供学习研究。ZCode 及相关商标归其所有者。逆向所得契约用于实现兼容,不包含闭源二进制本身。
 
-Web 模式默认工作目录为当前目录，监听 `127.0.0.1`，默认不启用访问令牌，自动选择空闲端口并打开浏览器。访问终端输出的地址，按 `Ctrl+C` 停止服务。局域网访问可使用 `--host 0.0.0.0`；监听非本机地址时默认生成访问令牌，使用终端输出的带令牌链接。可通过 `--token` 指定令牌或 `--no-token` 关闭令牌认证。
+---
 
-直接启动通用 Web 服务的 HTTP 入口时，通过 `ZCODE_SERVER_AUTH_TOKEN` 配置 API／WebSocket 认证；通过程序接口创建服务时，使用 `authToken` 选项。
+<a name="english"></a>
 
-构建方式见下方打包章节。`pnpm build:zcode` 只生成发行包，不会替换 `PATH` 中已有的 `zcode`。如果命令仍指向旧安装或其他源码目录，macOS / Linux 可用 `command -v zcode` 检查，Windows 可用 `where.exe zcode` 检查。
+# LibreZCode (English)
 
-### CLI 源码开发
+> An open-source rebuild of ZCode Desktop. Based on the open-sourced [zai-org/ZCode](https://github.com/zai-org/ZCode) (v3.14.0), it reverse-engineers the closed-source ZCode Desktop 3.14.1 to restore the features the open-source repo is missing — with the goal of **behavioral parity** with the closed build.
 
-直接开发 TUI 或 Agent 时，运行源码入口：
+## Why
 
-```bash
-pnpm --filter @zcode/cli dev --help
-pnpm --filter @zcode/cli dev
+ZAI open-sourced ZCode's core under MIT, but several desktop features exist **only in the closed AppImage**: the 150% quota discount, phone↔desktop remote control, bot notifications (Telegram/Feishu/WeChat/Webhook), marketing dialogs, claimable plans, and server remote connections. **LibreZCode brings those back** so you can run a fully-featured, self-hostable, auditable ZCode from source.
 
-# 构建 CLI 及其 workspace 依赖
-pnpm --filter @zcode/cli... build
-node apps/zcode-cli/packages/cli/dist/zcode.cjs --help
-```
+## What we changed vs. the open-source version
 
-这个入口直接运行 Agent CLI，不经过发行包的 `--web` 分流。开发 Web 用 `pnpm dev:web`；验证统一的 `zcode` 命令，用下方解压后的 `bin/zcode.mjs`。
+- **Restored closed features** (see the table above): billing discount, GitHub-Release update channel, release CI, 5-agent mode mapping, webRemoteControl (full WS-relay protocol + RPC frame routing), `server` RemoteTarget + connection form, bots service + settings UI, marketingTouch dialogs, manualClaimPlan claim flow, 10 built-in plugins, and 524 missing i18n keys.
+- **Engineering fixes**: pnpm v9 `overrides`/`patchedDependencies` placement, Linux CI `libarchive-tools` (bsdtar) for pacman packaging, and a startup `os.hostname()` crash fix.
 
-## 配置
+## Build & Release
 
-根目录 [.env.example](.env.example) 提供服务地址与构建配置示例，可按需复制到 `.env`，本地覆盖放入 `.env.local`。Desktop 的开发环境通过 `dev:desktop:test` / `dev:desktop:prod` 选择。
+Releases are built by GitHub Actions — no local compile needed. Run the **Release** workflow with a `version`, `prerelease`, and `build_artifacts=true`; it validates, tags, builds CLI + desktop (mac-arm64/mac-x64/win-x64/linux-x64), and uploads assets.
 
-| 配置                                 | 用途                                             |
-| ------------------------------------ | ------------------------------------------------ |
-| `ZCODE_DATA_BASE_DIR`                | 应用数据基目录，数据写入其下的 `.zcode/`         |
-| `ZCODE_SERVER_WORKSPACE`             | Web 后端的工作区路径                             |
-| `ZCODE_BUILTIN_PROVIDER_CONFIG_FILE` | 本地 Provider 配置文件路径；未设置时使用内置配置 |
-| `ZCODE_DIST_BASE_URL`                | 命令行安装脚本使用的下载根地址                   |
+Local dev: `pnpm install && pnpm typecheck && pnpm dev:desktop`.
 
-运行时变量可在启动命令的环境中显式设置。随客户端发布的默认配置见 [config/README.md](config/README.md)。
+**Old AMD GPUs** (e.g. Oland / Radeon HD 8570 / R5 430) may crash on the GPU process and show a blank window — a known Electron issue that also affects the official closed build. Launch with `--disable-gpu` to force software rendering.
 
-## 打包
+## Remaining gaps vs. closed (to be polished)
 
-第三方声明生成、发行校验流程及声明在发行物中的位置见 [third-party/README.md](third-party/README.md)。
+- Server / webRemote remote RPC is currently a **skeleton** — real remote file/exec / phone-control needs the server RPC protocol fully wired.
+- UI for marketingTouch / bots / manualClaimPlan is **functional but not pixel-perfect** vs. closed.
+- Some i18n copy is reverse-filled, not yet verbatim-identical.
+- Telemetry / official-platform deep integration intentionally not replicated.
 
-### 桌面版
+See [`ZCode额度优惠实现方案调研.md`](./ZCode额度优惠实现方案调研.md) and `.agents/specs/` for implementation details and contracts.
 
-```bash
-pnpm bundle:desktop
+## Disclaimer
 
-# 指定目标平台与 CPU 架构
-pnpm bundle:desktop -- --os win --arch x64
-
-pnpm bundle:desktop -- --help
-```
-
-默认目标为 macOS arm64，默认输出目录为 `packages/desktop/dist/`。`--os` 支持 `mac`、`win`、`linux`，`--arch` 支持 `x64`、`arm64`；实际打包与签名需要目标平台对应的工具和配置。
-
-安装：双击打开产物 DMG，将 ZCode 拖入"应用程序"。本地构建未签名，首次打开若被 macOS 拦截，执行：
-
-```bash
-sudo xattr -rd com.apple.quarantine /Applications/ZCode.app
-```
-
-### ZCode 命令行版
-
-构建入口为 `pnpm build:zcode`。脚本会依次构建 CLI/TUI、后端和 Web，收集 TUI 的原生库、worker 与运行时依赖，再组装发行包；运行发行包仍需要 Node.js，版本以 `mise.toml` 为准。
-
-打包前必须设置下载根地址 `ZCODE_DIST_BASE_URL`（可放在 `.env`、`.env.local` 或环境变量中），也可以通过 `--base-url` 传入。以下地址是占位示例，发布时替换为实际托管地址：
-
-```bash
-pnpm build:zcode --base-url https://downloads.example.com/zcode/
-
-# 已配置 ZCODE_DIST_BASE_URL 时
-pnpm build:zcode
-
-# 仅重新组包，复用已有的 Agent、后端和 Web 构建产物
-pnpm build:zcode --skip-build
-
-# 查看版本、输出目录等可选参数
-pnpm build:zcode --help
-```
-
-默认版本取根目录 `package.json`，输出目录为 `dist/zcode/`：
-
-- `releases/<version>/zcode-<version>.tar.gz`：运行包。
-- `releases/<version>/sha256.txt`：校验摘要。
-- `latest.json`、`install.sh`：版本索引和安装脚本。
-
-完整目录可上传到配置的下载根地址。安装脚本从该地址下载运行包，默认安装到 `~/.zcode/runtime`，并在 `~/.local/bin` 创建 `zcode` 命令。安装目录可通过 `ZCODE_DIST_HOME` 修改，命令目录可通过 `ZCODE_DIST_BIN_DIR` 修改。
-
-旧 Lite 用户需要改用上述构建命令、环境变量和新的安装脚本。新安装不会删除旧 Lite 目录，也不会迁移或删除已有会话数据。
-
-本地调试打包产物时，可直接解压运行，无需上传或安装：
-
-```bash
-zcode_version=$(node -p "require('./dist/zcode/latest.json').version")
-mkdir -p dist/zcode/debug
-tar -xzf "dist/zcode/releases/$zcode_version/zcode-$zcode_version.tar.gz" \
-  -C dist/zcode/debug
-# 默认启动 TUI
-node dist/zcode/debug/zcode/bin/zcode.mjs
-
-# 启动 Web
-node dist/zcode/debug/zcode/bin/zcode.mjs --web \
-  --workspace "$PWD" --port 3030 --no-open
-```
-
-浏览器打开 `http://127.0.0.1:3030`，即可验证同一后端服务托管 Web 页面和 Agent 的完整链路。该端口需要空闲；如正在运行 `pnpm dev:web`，可改用其他 `--port`。
-
-## 仓库结构
-
-| 目录                                                 | 职责                                       |
-| ---------------------------------------------------- | ------------------------------------------ |
-| `packages/desktop`                                   | Electron Main、Host、Renderer 与桌面打包   |
-| `packages/web`                                       | Web 客户端                                 |
-| `packages/server`                                    | HTTP / WebSocket 服务与远程连接            |
-| `packages/zcode-server-cli`                          | 独立 Server 启动与进程管理                 |
-| `packages/ui`                                        | 共享 React 组件、hooks 与 Zustand 状态     |
-| `packages/services`                                  | 业务服务与持久化                           |
-| `packages/shared`、`packages/rpc`、`packages/client` | 共享协议和类型、RPC 框架、Agent 客户端 SDK |
-| `packages/provider`、`packages/provider-node`        | Provider 公共能力与 Node 实现              |
-| `apps/zcode-cli`                                     | Agent CLI、TUI、运行时与工具               |
-| `scripts`、`config`、`third-party`                   | 构建维护脚本、内置配置与第三方声明材料     |
-
-## 项目声明
-
-功能与优惠范围、维护规则、执行与数据风险，以及许可和第三方版权说明，详见 [NOTICE.md](NOTICE.md)。
+For educational/research purposes only. ZCode and related trademarks belong to their owners. Reverse-engineered contracts are used for compatibility; no closed-source binaries are included.
