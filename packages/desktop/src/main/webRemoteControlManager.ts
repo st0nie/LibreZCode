@@ -37,6 +37,20 @@ export interface WebRemoteControlWorkspaceTarget {
   initialTaskId?: string;
 }
 
+/** bootstrap/workspaces 里 workspace 摘要 */
+export interface WorkspaceSummary {
+  workspacePath: string;
+  workspaceIdentity?: string;
+  remoteSessionId?: string;
+  label?: string;
+}
+
+/** 手机端视图状态 */
+export interface MobileViewState {
+  activeWorkspaceKey?: string;
+  [key: string]: unknown;
+}
+
 export interface WebRemoteControlManagerOptions {
   /** 取当前 endpoint 的 relay WS URL */
   getRelayWsUrl: () => Promise<string>;
@@ -56,6 +70,14 @@ export interface WebRemoteControlManagerOptions {
   onStatusChanged?: (windowId: number, status: WebRemoteControlRuntimeStatus) => void;
   /** 远程使用事件上报 */
   reportRemoteUsageEvent?: (elementName: string, payload: unknown) => void;
+  /** platform-request 处理器(method → handler) */
+  platformHandlers?: Record<string, (args: unknown) => Promise<unknown> | unknown>;
+  /** 可用 workspace 列表 */
+  getAvailableWorkspaces?: (windowId: number) => WorkspaceSummary[];
+  /** 当前任务快照 */
+  getTasks?: (windowId: number) => unknown[];
+  /** 渲染 telemetry */
+  reportRendererTelemetryEvent?: (event: unknown) => void;
   /** workspace bridge 创建 */
   createWorkspaceBridge?: (
     windowId: number,
@@ -86,6 +108,8 @@ interface WebRemoteControlWindowState {
   pendingOutboundPayloads: unknown[];
   pendingOutboundPayloadTimer?: ReturnType<typeof setTimeout>;
   mobileDisconnectGraceTimer?: ReturnType<typeof setTimeout>;
+  mobileViewState?: MobileViewState;
+  mobileDeviceInfo?: unknown;
 }
 
 export function createWebRemoteControlManager(options: WebRemoteControlManagerOptions) {
@@ -268,6 +292,134 @@ export function createWebRemoteControlManager(options: WebRemoteControlManagerOp
     }
   }
 
+  // ---- RPC 帧路由(对齐闭源 routePayload) ----
+
+  function respond(state: WebRemoteControlWindowState, frame: Record<string, unknown>): void {
+    sendAppPayload(state, frame);
+  }
+
+  function buildBootstrapResult(state: WebRemoteControlWindowState) {
+    return {
+      windowControlSessionId: state.deviceSid,
+      desktopAppVersion: options.appVersion,
+      workspaces: getAvailableWorkspaces(state.windowId),
+      tasks: options.getTasks?.(state.windowId) ?? [],
+      initialViewState: state.mobileViewState,
+      mobileViewState: state.mobileViewState,
+    };
+  }
+
+  function getAvailableWorkspaces(windowId: number): WorkspaceSummary[] {
+    const fromOptions = options.getAvailableWorkspaces?.(windowId) ?? [];
+    return fromOptions;
+  }
+
+  async function handlePlatformRequest(
+    state: WebRemoteControlWindowState,
+    frame: { requestId?: unknown; method?: unknown; args?: unknown },
+  ): Promise<void> {
+    const method = typeof frame.method === "string" ? frame.method : "";
+    const handler = options.platformHandlers?.[method];
+    if (!handler) {
+      respond(state, {
+        zcode_type: "platform-response",
+        requestId: frame.requestId,
+        method,
+        success: false,
+        error: `unknown_platform_method:${method}`,
+      });
+      return;
+    }
+    try {
+      const result = await handler(frame.args);
+      respond(state, {
+        zcode_type: "platform-response",
+        requestId: frame.requestId,
+        method,
+        success: true,
+        result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      options.logger.warn(`[web-remote-control] platform-request failed`, { method, message });
+      respond(state, {
+        zcode_type: "platform-response",
+        requestId: frame.requestId,
+        method,
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  function routeRpcFrame(
+    state: WebRemoteControlWindowState,
+    rawPayload: unknown,
+    opts: WebRemoteControlManagerOptions,
+  ): void {
+    if (!rawPayload || typeof rawPayload !== "object") return;
+    const frame = rawPayload as Record<string, unknown>;
+    const zcodeType = frame["zcode_type"];
+    if (typeof zcodeType !== "string") return;
+
+    switch (zcodeType) {
+      case "bootstrap-request":
+        respond(state, {
+          zcode_type: "bootstrap-response",
+          requestId: frame["requestId"],
+          success: true,
+          result: buildBootstrapResult(state),
+        });
+        break;
+      case "workspace-list-request":
+        respond(state, {
+          zcode_type: "workspace-list-response",
+          requestId: frame["requestId"],
+          success: true,
+          result: {
+            workspaces: getAvailableWorkspaces(state.windowId),
+            tasks: opts.getTasks?.(state.windowId) ?? [],
+            activeWorkspaceKey: state.mobileViewState?.activeWorkspaceKey,
+          },
+        });
+        break;
+      case "platform-request":
+        void handlePlatformRequest(
+          state,
+          frame as { requestId?: unknown; method?: unknown; args?: unknown },
+        );
+        break;
+      case "mobile-view-state-update":
+        state.mobileViewState =
+          (frame["viewState"] as MobileViewState | undefined) ?? state.mobileViewState;
+        state.mobileDeviceInfo = frame["deviceInfo"] ?? state.mobileDeviceInfo;
+        break;
+      case "workspace-bridge-open":
+        respond(state, {
+          zcode_type: "workspace-bridge-ready",
+          requestId: frame["requestId"],
+          bridgeSessionId: frame["bridgeSessionId"],
+        });
+        break;
+      case "workspace-reconnect-request":
+        respond(state, {
+          zcode_type: "workspace-reconnect-response",
+          requestId: frame["requestId"],
+          success: true,
+        });
+        break;
+      case "rpc-frame":
+      case "rpc-frame-ack":
+        // 中转 RPC 帧到 workspace bridge(由上层处理)
+        break;
+      case "telemetry-report":
+        opts.reportRendererTelemetryEvent?.(frame["event"]);
+        break;
+      default:
+        break;
+    }
+  }
+
   async function start(
     windowId: number,
     target: WebRemoteControlWorkspaceTarget,
@@ -337,8 +489,7 @@ export function createWebRemoteControlManager(options: WebRemoteControlManagerOp
       },
       onPayload: (payload) => {
         if (windows.get(windowId) !== state) return;
-        // RPC 帧路由(由上层处理)
-        options.reportRemoteUsageEvent?.("web_remote_control.payload_received", { windowId });
+        routeRpcFrame(state, payload, options);
       },
       onRegisteredAuth: (auth) => {
         state.deviceSid = auth.deviceSid;
