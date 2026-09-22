@@ -2102,11 +2102,18 @@ app.whenReady().then(async () => {
   const webRemoteControlManager = createWebRemoteControlManager({
     getRelayWsUrl: async () => {
       const origin = await resolveCurrentZCodeEndpointOrigin();
-      return new URL("/api/v1/web-remote-control/relay", origin).toString().replace("http", "ws");
+      const url = new URL(origin);
+      const protocol = url.protocol === "https:" ? "wss:" : "ws:";
+      // 对齐闭源 3.14.1: relay WS 为同源 /ws
+      return `${protocol}//${url.host}/ws`;
     },
     getRemoteUrl: async () => {
       const origin = await resolveCurrentZCodeEndpointOrigin();
-      return new URL("/web-remote-control", origin).toString();
+      // 对齐闭源 3.14.1: 手机端页面为 {origin}/remote/{v4|v3},按 appVersion 判定
+      const version = ZCODE_VERSION || app.getVersion() || "";
+      const major = Number.parseInt(version.split(".")[0] ?? "", 10);
+      const proto = Number.isFinite(major) && major >= 4 ? "v4" : "v3";
+      return new URL(`/remote/${proto}`, origin).toString();
     },
     deviceMid,
     deviceName: hostname(),

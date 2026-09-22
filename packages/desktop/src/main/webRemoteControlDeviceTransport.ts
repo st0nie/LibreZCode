@@ -560,8 +560,9 @@ export class WebRemoteControlDeviceTransport {
   }
 
   private calculateProof(passHash: string, nonce: string, role: string, deviceSid: string): string {
-    return createHmac("sha1", passHash)
-      .update(nonce + role + deviceSid)
+    // 对齐闭源 3.14.1: HMAC-SHA256(passHash, `${nonce}|${role}|${deviceSid}`)，竖线分隔
+    return createHmac("sha256", passHash)
+      .update(`${nonce}|${role}|${deviceSid}`)
       .digest("base64url");
   }
 }
@@ -579,9 +580,7 @@ export function createNodeWebRemoteControlRelayAuthProvider(): WebRemoteControlR
     createPassword: () => randomBytes(24).toString("base64url"),
     createPassHash: (password: string) => createHash("sha256").update(password).digest("base64url"),
     calculateProof: (passHash: string, nonce: string, role: string, deviceSid: string) =>
-      createHmac("sha1", passHash)
-        .update(nonce + role + deviceSid)
-        .digest("base64url"),
+      createHmac("sha256", passHash).update(`${nonce}|${role}|${deviceSid}`).digest("base64url"),
   };
 }
 
