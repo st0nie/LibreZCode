@@ -255,7 +255,7 @@ jobs:
           pnpm bundle:desktop -- \
             --os "${{ matrix.target }}" \
             --arch "${{ matrix.arch }}"
-            
+
       - name: Upload desktop asset to release
         shell: bash
         env:
