@@ -76,3 +76,38 @@ enum: `["api-key", "zhipu-coding-plan-api-key"]`
 ## badge 渲染链路(已接线)
 
 `useUsageEntitlementWithService` → service.getEntitlementSnapshot → snapshot.remaining.count → `WorkspaceSidebarFooterPlanBadge`(已加 compact remaining 显示)→ 左下角渲染
+
+## 二次诊断:token 已刷新,真实根因是风控(2026-09-22 重登后)
+
+用户重新登录后 zcodejwttoken 已刷新(iat=2026-09-22T07:44,无 exp),但 GLM 调用仍失败。
+
+### 两个 JWT 的关键区别
+
+| token                        | 长度     | 用途                                                                |
+| ---------------------------- | -------- | ------------------------------------------------------------------- |
+| `zcodejwttoken`              | 255      | 平台 session,只有 {user_id, token_version:0, iat},**无 exp**        |
+| **`oauth:zai:access_token`** | **1404** | **业务 token**,payload 含 user_type:PERSONAL, user_key, customer_id |
+
+### curl 实测(用 1404 业务 token)
+
+- `POST /api/anthropic/v1/messages` + oauth:zai:access_token → **HTTP 429 rate_limit code 1113 "Insufficient balance or no resource package"**(鉴权通过!)
+- `GET /api/monitor/usage/quota/limit` + oauth:zai:access_token → **500 "当前用户不存在coding plan"**
+- `GET zcode.z.ai/api/v1/zcode-plan/billing/current` + zcodejwttoken → **405 code 3012 "request has been blocked due to unusual activity"** ← **风控拦截!**
+
+### 真正根因
+
+1. **调 GLM 应用 oauth:zai:access_token(1404),不是 zcodejwttoken(255)**
+2. **请求被 ZAI 网关风控拦截(3012 unusual activity)** —— 可能是 curl 高频请求触发,或 IP/设备指纹异常
+3. 该账号 oauth token 对应 customer 无 coding plan 资源包(429 insufficient balance)
+
+### 正确端点(Start Plan)
+
+- 模型推理: `POST {zcode-origin}/api/v1/zcode-plan/anthropic/v1/messages`
+- 额度余额: `GET {zcode-origin}/api/v1/zcode-plan/billing/balance?app_version={v}`
+- 当前套餐: `GET {zcode-origin}/api/v1/zcode-plan/billing/current?app_version={v}`
+- {zcode-origin} = https://zcode.z.ai
+- 请求头: `Authorization: <zcodejwttoken>`(裸 token,闭源码 headers:{Authorization:t},t 即完整 Bearer 串由调用方传)
+
+### badge 数据
+
+billing/balance 或 billing/current 返回的余额 → 左下角 badge。需应用正常登录态(非风控)才能拉到。
