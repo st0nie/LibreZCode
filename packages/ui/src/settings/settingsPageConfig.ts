@@ -184,6 +184,9 @@ export function createSettingsPageConfig({
   const showComputerUse = isDesktop || isMacDesktop || isWindowsDesktop;
   const settingsSections = BASE_SETTINGS_SECTIONS.filter((section) => {
     if (section.id === "computerUse" && !showComputerUse) return false;
+    // 移动端远程控制依赖 desktop 的 Electron main 进程(WS relay 配对),
+    // web 版无 main 进程,入口置灰/隐藏,避免点了无反应。
+    if (section.id === "webRemoteControl" && !isDesktop) return false;
     return isSettingsSectionEnabled(section.id);
   });
   const settingsSectionGroups = BASE_SETTINGS_SECTION_GROUPS.map((group) => ({
