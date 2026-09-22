@@ -93,10 +93,20 @@ export const dockerConnectOptionsSchema = z.object({
   container: nonEmptyStringSchema,
 });
 
+/** 连接已经运行的 ZCode server;token 属凭据,不进 schema。 */
+export const serverConnectOptionsSchema = z.object({
+  kind: z.literal("server"),
+  url: nonEmptyStringSchema,
+  name: z.string().optional(),
+  token: z.string().optional(),
+  workspacePath: z.string().optional(),
+});
+
 export const remoteTargetSchema = z.discriminatedUnion("kind", [
   sshConnectOptionsSchema,
   wslConnectOptionsSchema,
   dockerConnectOptionsSchema,
+  serverConnectOptionsSchema,
 ]);
 
 export const helloMessageSchema = z.object({

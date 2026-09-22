@@ -24,6 +24,8 @@ function getRemoteWorkspaceReconnectLogTargetSuffix(
     }
     case "docker":
       return target.container;
+    case "server":
+      return target.url;
   }
 }
 

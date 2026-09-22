@@ -156,10 +156,19 @@ export interface DockerRemoteTargetSnapshot {
   container: string;
 }
 
+/** 连接已运行的 ZCode server 的持久化快照(不含 token,token 走 credentialService)。 */
+export interface ServerRemoteTargetSnapshot {
+  kind: "server";
+  url: string;
+  name?: string;
+  workspacePath?: string;
+}
+
 export type RemoteTargetSnapshot =
   | SSHRemoteTargetSnapshot
   | WSLRemoteTargetSnapshot
-  | DockerRemoteTargetSnapshot;
+  | DockerRemoteTargetSnapshot
+  | ServerRemoteTargetSnapshot;
 
 export interface RemoteWorkspaceSessionSnapshot {
   /** 远程 workspace 的真实绝对路径 */

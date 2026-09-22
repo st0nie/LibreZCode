@@ -157,6 +157,8 @@ export const TID_REMOTE_KIND_SSH = "remote-kind-ssh";
 export const TID_REMOTE_KIND_WSL = "remote-kind-wsl";
 /** 远程连接方式切换到 Docker */
 export const TID_REMOTE_KIND_DOCKER = "remote-kind-docker";
+/** 远程连接方式切换到 Server(已运行的 ZCode server) */
+export const TID_REMOTE_KIND_SERVER = "remote-kind-server";
 /** SSH 主机地址输入框 */
 export const TID_SSH_HOST_INPUT = "ssh-host-input";
 /** SSH 端口号输入框 */

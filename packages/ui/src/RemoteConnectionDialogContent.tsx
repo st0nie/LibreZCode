@@ -8,7 +8,12 @@ import type {
   SSHConfigAliasOption,
   WSLDistro,
 } from "@zcode/shared";
-import { TID_REMOTE_KIND_DOCKER, TID_REMOTE_KIND_SSH, TID_REMOTE_KIND_WSL } from "@zcode/shared";
+import {
+  TID_REMOTE_KIND_DOCKER,
+  TID_REMOTE_KIND_SERVER,
+  TID_REMOTE_KIND_SSH,
+  TID_REMOTE_KIND_WSL,
+} from "@zcode/shared";
 import type {
   IMcpSyncService,
   IPluginSyncService,
@@ -45,6 +50,8 @@ function getKindIcon(kind: RemoteTarget["kind"]) {
       return MonitorCogIcon;
     case "wsl":
       return TerminalIcon;
+    case "server":
+      return ServerIcon;
   }
 }
 
@@ -80,7 +87,9 @@ export function RemoteConnectionKindStep({
                   ? TID_REMOTE_KIND_SSH
                   : value === "wsl"
                     ? TID_REMOTE_KIND_WSL
-                    : TID_REMOTE_KIND_DOCKER
+                    : value === "server"
+                      ? TID_REMOTE_KIND_SERVER
+                      : TID_REMOTE_KIND_DOCKER
               }
               className={cn(
                 "flex min-h-32 flex-col items-start gap-4 rounded-2xl border p-4 text-left transition-colors",

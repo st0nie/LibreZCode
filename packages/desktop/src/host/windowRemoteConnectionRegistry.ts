@@ -122,6 +122,8 @@ function buildConnectionKey(target: RemoteTarget, remoteSessionId: string): stri
     case "docker":
       // Docker 保持现有 dedicated logical session 生命周期，不按 target 复用。
       return `${target.kind}:dedicated:${remoteSessionId}`;
+    case "server":
+      return `server:${target.url.trim().toLowerCase()}\0${remoteSessionId}`;
   }
 }
 

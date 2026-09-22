@@ -57,6 +57,8 @@ export function buildRemoteWorkspaceIdentity(workspacePath: string, target: Remo
     }
     case "docker":
       return `remote:docker:${target.container}:${normalizedPath}`;
+    case "server":
+      return `remote:server:${target.url.trim().toLowerCase()}:${normalizedPath}`;
   }
 }
 

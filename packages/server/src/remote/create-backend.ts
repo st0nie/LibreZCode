@@ -31,5 +31,9 @@ export async function createRemoteBackend(target: RemoteTarget): Promise<IRemote
       const { DockerBackend } = await import("./docker-backend.js");
       return new DockerBackend(target);
     }
+    case "server": {
+      const { ServerBackend } = await import("./server-backend.js");
+      return new ServerBackend(target);
+    }
   }
 }

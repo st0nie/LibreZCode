@@ -79,6 +79,8 @@ export function formatRemoteWorkspaceTargetSubtitle(
     }
     case "docker":
       return `Docker · ${target.container}`;
+    case "server":
+      return `Server · ${target.url}`;
   }
 }
 
@@ -92,6 +94,8 @@ export function formatRemoteWorkspaceHeaderHostLabel(
       return formatWslRemoteTargetAuthority(target);
     case "docker":
       return `docker:${target.container}`;
+    case "server":
+      return target.url;
   }
 }
 
@@ -131,6 +135,8 @@ function getRemoteWorkspaceAuthorityKey(target: RemoteTarget | RemoteTargetSnaps
     }
     case "docker":
       return ["docker", target.container].join(":");
+    case "server":
+      return ["server", target.url.trim().toLowerCase()].join(":");
   }
 }
 
@@ -214,6 +220,13 @@ function createRemoteTargetSnapshot(
         kind: "docker",
         container: target.container,
       };
+    case "server":
+      return {
+        kind: "server",
+        url: target.url,
+        ...(target.name?.trim() ? { name: target.name.trim() } : {}),
+        ...(target.workspacePath?.trim() ? { workspacePath: target.workspacePath.trim() } : {}),
+      };
   }
 }
 
@@ -249,6 +262,13 @@ export function createRemoteTargetFromSnapshot(
       return {
         kind: "docker",
         container: snapshot.container,
+      };
+    case "server":
+      return {
+        kind: "server",
+        url: snapshot.url,
+        ...(snapshot.name ? { name: snapshot.name } : {}),
+        ...(snapshot.workspacePath ? { workspacePath: snapshot.workspacePath } : {}),
       };
   }
 }
