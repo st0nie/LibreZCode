@@ -236,6 +236,24 @@ export {
   type MarketingTouchReportParams,
   MARKETING_TOUCH_LOCALES,
 } from "./marketing/marketingTouchService.js";
+
+// Bots(机器人通知)服务 — 对齐闭源 3.14.1,契约见 .agents/specs/bots.md
+export {
+  createBotsService,
+  isFeishuBotProvider,
+  BOT_PROVIDERS,
+  BOT_REPLY_MODES,
+  BOT_PUSH_SOURCE_TASK,
+  BOT_PUSH_SOURCE_TASK_STREAM,
+  type BotProvider,
+  type BotReplyMode,
+  type BotConfig,
+  type BotsStorage,
+  type BotRuntime,
+  type BotRuntimeStorage,
+  type FeishuBot,
+  type IBotsService,
+} from "./bots/botsService.js";
 export {
   IClientScenesService,
   type ClientSceneConfig,
