@@ -495,12 +495,32 @@ export function WorkspaceSidebarFooterPlanBadge({
     return null;
   }
 
+  // 对齐闭源 3.14.1:套餐徽标旁展示剩余 token 数(compact 格式,如 100,000,000 → 100M)
+  const remainingTokens =
+    state.profilePlanBadge?.audience === "individual"
+      ? (state.profilePlanBadge.snapshot.remaining?.count ?? null)
+      : null;
+  const remainingLabel =
+    typeof remainingTokens === "number" && Number.isFinite(remainingTokens)
+      ? new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(
+          remainingTokens,
+        )
+      : null;
+
   return (
     <span
-      className="min-w-0 max-w-20 shrink truncate rounded-full border border-border bg-surface px-1 py-px text-ui-xs font-medium leading-normal text-foreground-subtle"
-      title={label}
+      className="flex min-w-0 shrink items-center gap-1 rounded-full border border-border bg-surface px-1.5 py-px text-ui-xs font-medium leading-normal text-foreground-subtle"
+      title={remainingLabel ? `${label} · ${remainingLabel}` : label}
     >
-      {label}
+      <span className="min-w-0 max-w-20 truncate">{label}</span>
+      {remainingLabel ? (
+        <span className="shrink-0 text-foreground-subtle">
+          {intl.formatMessage(
+            { id: "sidebar.usage.plan.remainingShort" },
+            { value: remainingLabel },
+          )}
+        </span>
+      ) : null}
     </span>
   );
 }
