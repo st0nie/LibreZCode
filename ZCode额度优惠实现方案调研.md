@@ -205,18 +205,18 @@ cd packages/ui && ../../node_modules/.bin/tsx --test \
 
 基于 ZCodium 审计资料 + 闭源 3.14.1 AppImage 逆向,在 zai-org/ZCode 3.14.0 基础上补齐以下功能:
 
-| 功能                       | 实现位置                                                                                                                                              | 状态      |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 额度优惠                   | shared/services/ui 全链路 + 3 露出点                                                                                                                  | ✅        |
-| 更新通道(GitHub releases)  | autoUpdater.ts + electron-builder.config.js publish=github                                                                                            | ✅        |
-| release.yml CI             | .github/workflows/release.yml(校验版本→建 tag→构建 CLI+桌面 4 平台→上传)                                                                              | ✅        |
-| mode 五族模式映射          | display-help.ts(claude/codex/gemini/opencode/glm)                                                                                                     | ✅        |
-| webRemoteControl(手机远控) | desktop/main WS relay 协议 + manager 状态机 + IPC + preload + UI 设置页                                                                               | ✅        |
-| bots 机器人通知            | services/bots/botsService.ts(Telegram/Feishu/微信/Webhook/Discord/WeCom)                                                                              | ✅ 服务层 |
-| server RemoteTarget        | shared 类型 + validation + UI 连接表单(url/name/token/workspacePath)                                                                                  | ✅        |
-| marketingTouch(营销弹窗)   | services/marketing/marketingTouchService.ts(GET/POST /marketing/touch + action)                                                                       | ✅ 服务层 |
-| 内置 10 插件               | apps/zcode-cli/packages/(documents/pdf/spreadsheets/presentations/slides/skill-creator/plugin-creator/image-search/restore-legacy-sessions/zcode-cua) | ✅        |
-| i18n 524 缺口键            | zh-CN.ts + en-US.ts(bots/webRemoteControl/manualClaimPlan/mode/settings/marketingTouch/rewards)                                                       | ✅        |
+| 功能                       | 实现位置                                                                                                                                              | 状态 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| 额度优惠                   | shared/services/ui 全链路 + 3 露出点                                                                                                                  | ✅   |
+| 更新通道(GitHub releases)  | autoUpdater.ts + electron-builder.config.js publish=github                                                                                            | ✅   |
+| release.yml CI             | .github/workflows/release.yml(校验版本→建 tag→构建 CLI+桌面 4 平台→上传)                                                                              | ✅   |
+| mode 五族模式映射          | display-help.ts(claude/codex/gemini/opencode/glm)                                                                                                     | ✅   |
+| webRemoteControl(手机远控) | desktop/main WS relay 协议 + manager 状态机 + IPC + preload + UI 设置页                                                                               | ✅   |
+| bots 机器人通知            | services/bots/botsService.ts + ui/settings/BotsSettingSection.tsx(Telegram/Feishu/微信/Webhook/Discord/WeCom)                                         | ✅   |
+| server RemoteTarget        | shared 类型 + validation + UI 连接表单(url/name/token/workspacePath)                                                                                  | ✅   |
+| marketingTouch(营销弹窗)   | services/marketing/marketingTouchService.ts + ui/settings/MarketingTouchDialog.tsx(营销弹窗)                                                          | ✅   |
+| 内置 10 插件               | apps/zcode-cli/packages/(documents/pdf/spreadsheets/presentations/slides/skill-creator/plugin-creator/image-search/restore-legacy-sessions/zcode-cua) | ✅   |
+| i18n 524 缺口键            | zh-CN.ts + en-US.ts(bots/webRemoteControl/manualClaimPlan/mode/settings/marketingTouch/rewards)                                                       | ✅   |
 
 ## 发布
 
@@ -224,8 +224,6 @@ cd packages/ui && ../../node_modules/.bin/tsx --test \
 - Release: https://github.com/st0nie/LibreZCode/releases
 - 构建: GitHub Actions 手动触发(release.yml),输入 version + prerelease + build_artifacts
 
-## 待续(服务层已就绪,UI 可后续补)
+## 全部完成
 
-- manualClaimPlan UI(服务层契约已提取)
-- marketingTouch UI 弹窗组件(服务层已实现)
-- bots 设置页 UI(服务层 + 契约已就绪)
+所有缺口(含服务层 + UI)均已补齐并 push 到 main。
