@@ -237,6 +237,14 @@ export {
   MARKETING_TOUCH_LOCALES,
 } from "./marketing/marketingTouchService.js";
 
+// ManualClaimPlan(权益领取)服务 — 对齐闭源 3.14.1,契约见 .agents/specs/manualClaimPlan.md
+export {
+  createManualClaimPlanService,
+  type IManualClaimPlanService,
+  type ManualClaimEntitlement,
+  type ManualClaimPlan,
+} from "./coding-plan-subscription/manualClaimPlanService.js";
+
 // Bots(机器人通知)服务 — 对齐闭源 3.14.1,契约见 .agents/specs/bots.md
 export {
   createBotsService,

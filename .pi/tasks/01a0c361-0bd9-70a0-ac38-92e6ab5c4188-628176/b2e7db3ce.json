@@ -1,0 +1,24 @@
+{
+  "id": "b2e7db3ce",
+  "name": "build AppImage 本地验证修复",
+  "command": "cd /home/ut006444@uos/ZCode-Libre && pnpm --filter @zcode/desktop run bundle -- --os linux --arch x64 2>&1 | tail -25",
+  "status": "running",
+  "outputPath": ".pi/tasks/01a0c361-0bd9-70a0-ac38-92e6ab5c4188-628176/b2e7db3ce.output",
+  "cwd": "/home/ut006444@uos/ZCode-Libre",
+  "startTime": 1790055090131,
+  "pid": 658414,
+  "bytesWritten": 0,
+  "isAgent": false,
+  "surviveReload": false,
+  "notified": false,
+  "notifyOnCompletion": true,
+  "triggerOnCompletion": true,
+  "shellPolicy": {
+    "policy": "inherit",
+    "executable": "/bin/bash",
+    "argvPrefix": [
+      "-c"
+    ],
+    "dialect": "bash"
+  }
+}
