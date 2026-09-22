@@ -90,6 +90,32 @@ const browserUseRequiredRuntimePaths = [
   "skills/control-browser/SKILL.md",
   "skills/web-gui-tester/SKILL.md",
 ];
+const builtinContentPluginPackages = [
+  // 与桌面发行清单保持一致，避免远端要求未发行的插件资源。
+  "presentations-plugin",
+  "documents-plugin",
+  "pdf-plugin",
+  "spreadsheets-plugin",
+  "skill-creator-plugin",
+  "plugin-creator-plugin",
+  "image-search-plugin",
+  "restore-legacy-sessions-plugin",
+  "zcode-guide-plugin",
+].map((directory) => ({
+  packageName: `@zcode/${directory}`,
+  relativePath: `apps/zcode-cli/packages/${directory}`,
+  stagedPath: `packages/${directory}`,
+}));
+
+// computer-use 与上面几项同属内容型，但它有必填 seed 合同（见
+// apps/zcode-cli/packages/bootstrap/src/app/official-plugin-definitions.ts 的
+// OFFICIAL_CUA_REQUIRED_SEED_PATHS）：缺任一项都会 seed 出没有 client 的残缺插件。
+const cuaPluginPackage = {
+  packageName: "@zcode/zcode-cua-plugin",
+  relativePath: "apps/zcode-cli/packages/zcode-cua-plugin",
+  stagedPath: "packages/zcode-cua-plugin",
+};
+
 const remoteOfficialPluginPackages = [
   // 44b25ed46c「remove bundled plugins except browser use and cua」删掉了其余
   // 内置插件源码，但漏改这份清单，bootstrap:with-remote 在 staging 第一个 manifest 就抛
@@ -116,6 +142,10 @@ const remoteOfficialPluginPackages = [
     runtimeBuildScript: "scripts/build.mjs",
     stagedPath: "packages/node-repl-host",
   },
+  // 纯内容插件：无 dist、无 workspace 依赖，staging 只搬运 skills/agents/commands/docs。
+  // 新增条目必须同步 prepare-agent-node-bundle.mjs 与 zcodeAgentOfficialPluginAssets.ts。
+  ...builtinContentPluginPackages,
+  cuaPluginPackage,
 ];
 const remoteOfficialPluginTopLevelPaths = new Set([
   ".mcp.json",

@@ -88,6 +88,23 @@ const browserUseRequiredRuntimePaths = [
   "skills/control-browser/SKILL.md",
   "skills/web-gui-tester/SKILL.md",
 ];
+const builtinContentPluginPackages = [
+  // 清单只包含满足 seed 资源契约的插件，避免打包阶段要求不存在的资源。
+  "presentations-plugin",
+  "documents-plugin",
+  "pdf-plugin",
+  "spreadsheets-plugin",
+  "skill-creator-plugin",
+  "plugin-creator-plugin",
+  "image-search-plugin",
+  "restore-legacy-sessions-plugin",
+  "zcode-guide-plugin",
+].map((directory) => ({
+  packageName: `@zcode/${directory}`,
+  relativePath: `apps/zcode-cli/packages/${directory}`,
+  stagedPath: `packages/${directory}`,
+}));
+
 const officialPluginPackages = [
   {
     // browser-use 只携带自己的 client script 与 skill/docs；node_repl MCP runtime 归
@@ -110,6 +127,15 @@ const officialPluginPackages = [
     requiredRuntimePaths: ["dist/mcp/server.js"],
     runtimeBuildScript: "scripts/build.mjs",
     stagedPath: "packages/node-repl-host",
+  },
+  // 纯内容内置插件 + computer-use：无 dist、无 workspace 依赖。清单与
+  // scripts/prepare-prebuilds.mjs、packages/server/src/remote/zcodeAgentOfficialPluginAssets.ts
+  // 保持一致。
+  ...builtinContentPluginPackages,
+  {
+    packageName: "@zcode/zcode-cua-plugin",
+    relativePath: "apps/zcode-cli/packages/zcode-cua-plugin",
+    stagedPath: "packages/zcode-cua-plugin",
   },
 ];
 const includedOfficialPluginTopLevelPaths = new Set([
